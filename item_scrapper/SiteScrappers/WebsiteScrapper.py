@@ -1,8 +1,14 @@
+import time
 from abc import ABC, abstractmethod
 
 class WebsiteScrapper(ABC):
 
+    maxRetries = 3
+
     #First initializer will call the web driver to intialize selenium (This is to account for future sites that use JS to load their html)
+    @abstractmethod
+    def initializeScrapper(self):
+        pass
 
     # Method that will interact with the main page in whatever way is needed in order to search correctly,
     # Allows for future functionality like selecting preferences
@@ -25,3 +31,21 @@ class WebsiteScrapper(ABC):
     @abstractmethod
     def getItemFromWebElement(self, webElement):
         pass
+
+    @abstractmethod
+    def finish(self):
+        pass
+
+    def scrapeWebsite(self, itemToSearch):
+
+        filledWebItems = []
+        self.initializeScrapper()
+        self.enterItemSearch(itemToSearch)
+        time.sleep(3)
+        possibleWebElements = self.getPossibleItemWebElements()
+
+        for possibleElement in possibleWebElements:
+            if( self.isValidWebElement(possibleElement)):
+                filledWebItems.append(self.getItemFromWebElement(possibleElement))
+
+        return filledWebItems

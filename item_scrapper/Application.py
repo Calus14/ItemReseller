@@ -1,38 +1,51 @@
 from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
 import concurrent.futures
-from flask import Flask, jsonify
+import copy
+from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-@app.route('/listOfItems/<searchItem>', methods=['GET'])
+possibleWebsitesToSearch = {
+    "Amazon" : AmazonScrapper.AmazonScrapper(),
+    "Ebay" : EbayScrapper.EbayWebScrapper(),
+}
+
+@app.route('/listOfItems/', methods=['POST'])
 @cross_origin()
-def findListOfItemsOrdered(searchItem):
+def findListOfItemsOrdered():
+    thing = request
+    print(request.json)
+    searchItem = request.json["searchItem"]
+    websitesToSearch = request.json["websitesToSearch"]
 
-    amazonExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = 1)
-    ebayExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = 1)
+    scrapperFutures = []
+    # keep these in scope so we can finish them
+    scrappers = []
+    for website in websitesToSearch:
+        if website not in possibleWebsitesToSearch:
+            print("Error! Was sent a website named "+website+" but no scrapper exists for it.")
+            continue;
 
-    ebayScrapper = EbayScrapper.EbayWebScrapper()
-    amazonScrapper = AmazonScrapper.AmazonScrapper()
+        singleExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = 1)
+        websiteScrapper = copy.deepcopy(possibleWebsitesToSearch[website])
+        scrappers.append(websiteScrapper)
+        scrapperFutures.append( singleExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
 
-    amazonFuture = amazonExecutor.submit( amazonScrapper.priceSearch, searchItem)
-    ebayFuture = ebayExecutor.submit( ebayScrapper.priceSearch, searchItem)
+    websiteItems = []
+    for future in scrapperFutures:
+        websiteItems.extend(future.result())
 
-    amazonItems = amazonFuture.result()
-    ebayItems = ebayFuture.result()
+    for scrapper in scrappers:
+        scrapper.finish()
 
-    ebayScrapper.finish()
-    amazonScrapper.finish()
-
-    amazonItems.update(ebayItems)
-
-    sortedItems = sorted(amazonItems.items(), key=lambda item: item[1])
+    sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
     returnList = []
     for item in sortedItems:
-        returnList.append( {"Name": item[0], "Price": "$"+str(item[1][0]), "Link": item[1][1] })
+        returnList.append( {"Name": item.itemName, "Price": "$"+str(item.itemPrice), "Link": item.itemLink, "Website": item.websiteName })
 
-    jsonHelper = {"sortedItems":returnList }
+    jsonHelper = {"sortedItems":returnList}
     return jsonify(jsonHelper)

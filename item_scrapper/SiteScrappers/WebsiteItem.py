@@ -5,3 +5,5 @@ class WebsiteItem:
     itemPrice = -1.0
     itemLink = "not_set"
     itemPicture = None
+
+    websiteName = "not_set"

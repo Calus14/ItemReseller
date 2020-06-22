@@ -4,8 +4,11 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 # from threading import Thread
+from item_scrapper.SiteScrappers.WebsiteItem import WebsiteItem
+from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 
-class EbayWebScrapper:
+
+class EbayWebScrapper(WebsiteScrapper):
 
     url = "https://www.ebay.com/"
     inputSearchElementXpath = "//input[@class='gh-tb ui-autocomplete-input']"
@@ -23,82 +26,82 @@ class EbayWebScrapper:
 
     maxRetries = 3
 
-
-    def __init__(self):
+    def initializeScrapper(self):
         self.myDriver = webdriver.Chrome(ChromeDriverManager().install())
         self.myDriver.get(self.url)
         print("Initializted ebay Scrapper")
 
-    def priceSearch(self, searchText):
-
+    def enterItemSearch(self, itemToSearch):
         header = self.myDriver.find_element_by_tag_name("header")
         try:
             searchBox = header.find_element_by_xpath(self.inputSearchElementXpath)
-            searchBox.send_keys(searchText)
+            searchBox.send_keys(itemToSearch)
             searchButton = header.find_element_by_xpath(self.searchButtonElementXpath)
             searchButton.click()
         except NoSuchElementException as e:
             print(e)
             print("Failed to enter into the text box and press the button")
+            return
 
-        #Gaurentee that it loads the new page source correctly
-        time.sleep(3)
-
-        #List Of all the Items on the page
-        itemList = []
-        #Dictionary from name to meta data about the item (price/link/etc) that will be sorted
-        itemDict = {}
-
+    def getPossibleItemWebElements(self):
         for tries in range(self.maxRetries):
             try:
                 itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemElementXpath)
-                if len(itemList) is 0:
+                if len(itemList) == 0:
                     itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemElementXpathAlternative)
                 print("Ebay list size")
                 print(len(itemList))
-
-                break
+                return itemList
 
             except Exception as e:
                 print(e)
                 time.sleep(1)
 
-        for itemWebElement in itemList:
-            itemHtml = itemWebElement.get_attribute("innerHTML")
-            if( not self.itemPriceHtml in itemHtml or not self.itemNameHtml in itemHtml ):
-                continue
+        return None
 
-            priceStartIndex = itemHtml.find(self.itemPriceHtml) + len(self.itemPriceHtml)
-            priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("</span>")
+    def isValidWebElement(self, webElement):
+        itemHtml = webElement.get_attribute("innerHTML")
+        if( not self.itemPriceHtml in itemHtml or not self.itemNameHtml in itemHtml ):
+            return False
+        return True
+
+    def getItemFromWebElement(self, webElement):
+        itemHtml = webElement.get_attribute("innerHTML")
+
+        priceStartIndex = itemHtml.find(self.itemPriceHtml) + len(self.itemPriceHtml)
+        priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("</span>")
+        itemPrice = -1.0
+        try:
+            itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
+        except Exception as e:
+            # on Ebay there is a possibility of <low> to <high>
             try:
+                priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("<span class")
                 itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
-            except Exception as e:
-                # on Ebay there is a possibility of <low> to <high>
-                try:
-                    priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("<span class")
-                    itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
-                except Exception as e2:
-                    print("Was unable to find the valid price end index expected it to be price to price2 format")
+            except Exception as e2:
+                print("Was unable to find the valid price end index expected it to be price to price2 format")
 
+        itemLink = ""
+        if( re.search(self.itemLinkHtml, itemHtml) ):
+            matchObj = re.search(self.itemLinkHtml, itemHtml)
+            linkStartIndex = matchObj.end(0)
+            linkEndIndex = linkStartIndex + itemHtml[linkStartIndex:].find(">")
+            itemLink = itemHtml[linkStartIndex:linkEndIndex].replace('"', '')
 
-            itemLink = ""
-            if( re.search(self.itemLinkHtml, itemHtml) ):
-                matchObj = re.search(self.itemLinkHtml, itemHtml)
-                linkStartIndex = matchObj.end(0)
-                linkEndIndex = linkStartIndex + itemHtml[linkStartIndex:].find(">")
-                itemLink = itemHtml[linkStartIndex:linkEndIndex].replace('"', '')
+        nameStartIndex = itemHtml.find(self.itemNameHtml) + len(self.itemNameHtml)
+        nameEndIndex = nameStartIndex + itemHtml[nameStartIndex:].find("</h3>")
+        itemName = itemHtml[nameStartIndex:nameEndIndex]
+        #Replace any bolding of the name or other weird shit
+        itemName = re.sub('<[^>]*>', '', itemName)
 
-            nameStartIndex = itemHtml.find(self.itemNameHtml) + len(self.itemNameHtml)
-            nameEndIndex = nameStartIndex + itemHtml[nameStartIndex:].find("</h3>")
-            itemName = itemHtml[nameStartIndex:nameEndIndex]
-            #Replace any bolding of the name or other weird shit
-            itemName = re.sub('<[^>]*>', '', itemName)
+        fullItem = WebsiteItem()
+        fullItem.websiteName = "Ebay"
+        fullItem.itemPrice = itemPrice
+        fullItem.itemName = itemName
+        if( len(itemLink) > 0 ):
+            fullItem.itemLink = itemLink
 
-            itemDict[itemName] = [itemPrice, itemLink]
-
-        print("Ebay")
-        print( len(itemDict) )
-        return itemDict
+        return fullItem
 
     def finish(self):
         self.myDriver.quit()
