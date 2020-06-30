@@ -95,7 +95,6 @@ class EbayWebScrapper(WebsiteScrapper):
             pictureStartIndex = pictureMatch.end(0)
             pictureEndIndex = pictureStartIndex + itemHtml[pictureStartIndex:].find("</div>")
             pictureHtmlLink = itemHtml[pictureStartIndex:pictureEndIndex]
-            print("Found Picture link with html "+pictureHtmlLink)
 
         nameStartIndex = itemHtml.find(self.itemNameHtml) + len(self.itemNameHtml)
         nameEndIndex = nameStartIndex + itemHtml[nameStartIndex:].find("</h3>")

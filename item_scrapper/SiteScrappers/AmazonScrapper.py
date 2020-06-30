@@ -90,7 +90,6 @@ class AmazonScrapper(WebsiteScrapper):
             pictureStartIndex = pictureMatch.end(0)
             pictureEndIndex = pictureStartIndex + itemHtml[pictureStartIndex:].find(">")+1
             pictureHtmlLink = itemHtml[pictureStartIndex:pictureEndIndex].replace('\n', '')
-            print("Found Picture link with html "+pictureHtmlLink)
 
         nameMatch = re.search(self.itemNameHtml, itemHtml)
         nameStartIndex = nameMatch.end(0)

@@ -2,3 +2,4 @@ selenium==3.141.0
 webdriver-manager==2.5.3
 Flask==1.1.2
 Flask-Cors==3.0.8
+Flask-Mail==0.9.1

@@ -1,0 +1,12 @@
+- make sure a docker-machine is running
+- to list all docker-machine ps
+- To check its configuration docker-machine env dev
+- to configure docker-machine config
+
+---- docker-machine ssh <machine name> after started
+
+To build manually
+docker build ./
+
+to run docker-compose
+docker-compuse up

@@ -4,6 +4,11 @@ services:
   item-reseller:
     environment:
       - ssl_insecure=1
+      - EMAIL_USER=chblaze@gmail.com
+      - EMAIL_PASSWORD=Doubleback2
+
     build: .
+    ports:
+      - "8801:8801"
     volumes:
       - .:/usr/src/app

@@ -1,4 +1,5 @@
 from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
+from item_scrapper import EmailManager
 import concurrent.futures
 import copy
 from flask import Flask, jsonify, request
@@ -48,4 +49,10 @@ def findListOfItemsOrdered():
         returnList.append( {"Name": item.itemName, "Price": "$"+str(item.itemPrice), "Image": item.itemPictureHtml, "Link": item.itemLink, "Website": item.websiteName })
 
     jsonHelper = {"sortedItems":returnList}
+
+    ''' TEST CODE please remove '''
+    testManager = EmailManager.EmailManager(app)
+    for item in sortedItems:
+        testManager.sendEmail(item, "chblaze@gmail.com")
+
     return jsonify(jsonHelper)

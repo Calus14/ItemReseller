@@ -1,15 +1,12 @@
-FROM python:3
+FROM python:3-onbuild
+COPY . /usr/src/app
 
-WORKDIR /usr/src/app
-
+EXPOSE 8081
+EXPOSE 80
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "echo", "WERE HERE" ]
-CMD [ "echo", "WERE HERE" ]
-CMD [ "echo", "WERE HERE" ]
-CMD [ "echo", "WERE HERE" ]
 CMD [ "ls", "-a" ]
 CMD [ "python", "run.py" ]
