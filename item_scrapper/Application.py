@@ -45,7 +45,7 @@ def findListOfItemsOrdered():
 
     returnList = []
     for item in sortedItems:
-        returnList.append( {"Name": item.itemName, "Price": "$"+str(item.itemPrice), "Link": item.itemLink, "Website": item.websiteName })
+        returnList.append( {"Name": item.itemName, "Price": "$"+str(item.itemPrice), "Image": item.itemPictureHtml, "Link": item.itemLink, "Website": item.websiteName })
 
     jsonHelper = {"sortedItems":returnList}
     return jsonify(jsonHelper)

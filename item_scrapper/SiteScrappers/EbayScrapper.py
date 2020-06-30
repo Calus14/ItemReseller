@@ -23,6 +23,7 @@ class EbayWebScrapper(WebsiteScrapper):
     itemNameHtml = '<h3 class="s-item__title">'
 
     itemLinkHtml = '<a .* class="s-item__link" href='
+    itemPictureHtml = '<div class="s-item__image-helper"></div>'
 
     maxRetries = 3
 
@@ -61,7 +62,7 @@ class EbayWebScrapper(WebsiteScrapper):
 
     def isValidWebElement(self, webElement):
         itemHtml = webElement.get_attribute("innerHTML")
-        if( not self.itemPriceHtml in itemHtml or not self.itemNameHtml in itemHtml ):
+        if( not self.itemPriceHtml in itemHtml or not self.itemNameHtml in itemHtml or not self.itemPictureHtml in itemHtml ):
             return False
         return True
 
@@ -88,6 +89,14 @@ class EbayWebScrapper(WebsiteScrapper):
             linkEndIndex = linkStartIndex + itemHtml[linkStartIndex:].find(">")
             itemLink = itemHtml[linkStartIndex:linkEndIndex].replace('"', '')
 
+        pictureHtmlLink = ""
+        pictureMatch = re.search(self.itemPictureHtml, itemHtml)
+        if( pictureMatch ):
+            pictureStartIndex = pictureMatch.end(0)
+            pictureEndIndex = pictureStartIndex + itemHtml[pictureStartIndex:].find("</div>")
+            pictureHtmlLink = itemHtml[pictureStartIndex:pictureEndIndex]
+            print("Found Picture link with html "+pictureHtmlLink)
+
         nameStartIndex = itemHtml.find(self.itemNameHtml) + len(self.itemNameHtml)
         nameEndIndex = nameStartIndex + itemHtml[nameStartIndex:].find("</h3>")
         itemName = itemHtml[nameStartIndex:nameEndIndex]
@@ -98,6 +107,7 @@ class EbayWebScrapper(WebsiteScrapper):
         fullItem.websiteName = "Ebay"
         fullItem.itemPrice = itemPrice
         fullItem.itemName = itemName
+        fullItem.itemPictureHtml = pictureHtmlLink
         if( len(itemLink) > 0 ):
             fullItem.itemLink = itemLink
 

@@ -26,6 +26,8 @@ class AmazonScrapper(WebsiteScrapper):
 
     itemNameHtml = '<span class=".* a-text-normal" dir="auto">'
 
+    itemPictureHtml = '<div class="a-section aok-relative s-image.*">'
+
     def initializeScrapper(self):
         self.myDriver = webdriver.Chrome(ChromeDriverManager().install())
         self.myDriver.get(self.url)
@@ -59,6 +61,7 @@ class AmazonScrapper(WebsiteScrapper):
 
     def isValidWebElement(self, webElement):
         itemHtml = webElement.get_attribute("innerHTML")
+
         if( not self.itemDollarHtml in itemHtml or not self.itemDecimalHtml in itemHtml or not re.search(self.itemNameHtml, itemHtml) ):
             return False
         return True
@@ -75,11 +78,19 @@ class AmazonScrapper(WebsiteScrapper):
         centsAmount = float( itemHtml[centsStartIndex:centsEndIndex].replace('"', '') )
 
         itemLink = ""
-        if( re.search(self.itemLinkHtml, itemHtml) ):
-            matchObj = re.search(self.itemLinkHtml, itemHtml)
+        matchObj = re.search(self.itemLinkHtml, itemHtml)
+        if( matchObj ):
             linkStartIndex = matchObj.end(0)
             linkEndIndex = linkStartIndex + itemHtml[linkStartIndex:].find(">")
             itemLink = itemHtml[linkStartIndex:linkEndIndex].replace('"', '')
+
+        pictureHtmlLink = ""
+        pictureMatch = re.search(self.itemPictureHtml, itemHtml)
+        if( pictureMatch ):
+            pictureStartIndex = pictureMatch.end(0)
+            pictureEndIndex = pictureStartIndex + itemHtml[pictureStartIndex:].find(">")+1
+            pictureHtmlLink = itemHtml[pictureStartIndex:pictureEndIndex].replace('\n', '')
+            print("Found Picture link with html "+pictureHtmlLink)
 
         nameMatch = re.search(self.itemNameHtml, itemHtml)
         nameStartIndex = nameMatch.end(0)
@@ -90,6 +101,7 @@ class AmazonScrapper(WebsiteScrapper):
         fullItem.websiteName = "Amazon"
         fullItem.itemName = itemName
         fullItem.itemPrice = dollarAmount+(centsAmount/100)
+        fullItem.itemPictureHtml = pictureHtmlLink
         if(len(itemLink) > 0):
             fullItem.itemLink = itemLink
 
