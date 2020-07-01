@@ -57,3 +57,4 @@ Will try to add a new Subscription object to the data base, if the email already
 @cross_origin()
 def addSubscription():
     print("hit the submit")
+    return "This Worked"
