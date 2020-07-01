@@ -4,6 +4,8 @@ class EmailManager:
 
     myMailer = None
     flaskApp = None
+    userName = None
+    password = None
 
     def __init__(self, flaskApp):
         self.flaskApp = flaskApp
@@ -12,9 +14,8 @@ class EmailManager:
             "MAIL_PORT": 465,
             "MAIL_USE_TLS": False,
             "MAIL_USE_SSL": True,
-            "MAIL_USERNAME": "itemsearchertest@gmail.com",
-            #"MAIL_PASSWORD": 'pythonPassword323'
-            "MAIL_PASSWORD": 'wlptzpegcjasaqga'
+            "MAIL_USERNAME": self.userName,
+            "MAIL_PASSWORD": self.password
         }
 
         self.flaskApp.config.update(mail_settings)

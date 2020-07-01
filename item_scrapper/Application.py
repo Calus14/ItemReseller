@@ -17,8 +17,6 @@ possibleWebsitesToSearch = {
 @app.route('/listOfItems/', methods=['POST'])
 @cross_origin()
 def findListOfItemsOrdered():
-    thing = request
-    print(request.json)
     searchItem = request.json["searchItem"]
     websitesToSearch = request.json["websitesToSearch"]
 
@@ -50,9 +48,10 @@ def findListOfItemsOrdered():
 
     jsonHelper = {"sortedItems":returnList}
 
-    ''' TEST CODE please remove '''
-    testManager = EmailManager.EmailManager(app)
-    for item in sortedItems:
-        testManager.sendEmail(item, "chblaze@gmail.com")
-
     return jsonify(jsonHelper)
+
+
+@app.route('/submitSubscription/', methods=['POST'])
+@cross_origin()
+def findListOfItemsOrdered():
+    print("hit the submit")
