@@ -31,14 +31,14 @@ def findListOfItemsOrdered():
 
         websiteScrapper = copy.deepcopy(possibleWebsitesToSearch[website])
         scrappers.append(websiteScrapper)
-        scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
+        #scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
 
     websiteItems = []
-    for future in scrapperFutures:
-        websiteItems.extend(future.result())
+    #for future in scrapperFutures:
+        #websiteItems.extend(future.result())
 
-    #for scrapper in scrappers:
-        #scrapper.finish()
+    for scrapper in scrappers:
+        scrapper.finish()
 
     sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
