@@ -80,7 +80,7 @@ class EbayWebScrapper(WebsiteScrapper):
                 priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("<span class")
                 itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
             except Exception as e2:
-                print("Was unable to find the valid price end index expected it to be price to price2 format")
+                print("price fail html is: "+itemHtml)
 
         itemLink = ""
         if( re.search(self.itemLinkHtml, itemHtml) ):

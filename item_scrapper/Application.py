@@ -17,7 +17,6 @@ possibleWebsitesToSearch = {
 @app.route('/listOfItems', methods=['POST'])
 @cross_origin()
 def findListOfItemsOrdered():
-    '''
     searchItem = request.json["searchItem"]
     websitesToSearch = request.json["websitesToSearch"]
 
@@ -50,11 +49,7 @@ def findListOfItemsOrdered():
     jsonHelper = {"sortedItems":returnList}
 
     return jsonify(jsonHelper)
-    '''
-    for i in range (50):
-        print("Was unable to find the valid price end index expected it to be price to price2 format")
 
-    return "This Worked"
 
 '''
 Will try to add a new Subscription object to the data base, if the email already exists will update the data on it.
