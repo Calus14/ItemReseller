@@ -23,15 +23,15 @@ def findListOfItemsOrdered():
     scrapperFutures = []
     # keep these in scope so we can finish them
     scrappers = []
+    threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = len(websitesToSearch) * 2 )
     for website in websitesToSearch:
         if website not in possibleWebsitesToSearch:
             print("Error! Was sent a website named "+website+" but no scrapper exists for it.")
             continue;
 
-        singleExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = len(websitesToSearch) * 2 )
         websiteScrapper = copy.deepcopy(possibleWebsitesToSearch[website])
         scrappers.append(websiteScrapper)
-        scrapperFutures.append( singleExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
+        scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
 
     websiteItems = []
     for future in scrapperFutures:
