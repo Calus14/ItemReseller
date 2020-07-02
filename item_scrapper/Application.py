@@ -38,7 +38,11 @@ def findListOfItemsOrdered():
         #websiteItems.extend(future.result())
 
     for scrapper in scrappers:
+        websiteItems.extend(scrapper.scrapeWebsite(searchItem))
+
+    for scrapper in scrappers:
         scrapper.finish()
+
 
     sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
