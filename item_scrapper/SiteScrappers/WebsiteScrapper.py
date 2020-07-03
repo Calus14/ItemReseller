@@ -43,7 +43,7 @@ class WebsiteScrapper(ABC):
         self.enterItemSearch(itemToSearch)
         #Because enterItemSearch doesnt block until the page has loaded we are using this hack
         # in the future we can probably check the driver to see if its loaded
-        time.sleep(1)
+        time.sleep(3)
         possibleWebElements = self.getPossibleItemWebElements()
 
         for possibleElement in possibleWebElements:

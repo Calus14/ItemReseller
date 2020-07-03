@@ -14,6 +14,15 @@ possibleWebsitesToSearch = {
     "Ebay" : EbayScrapper.EbayWebScrapper(),
 }
 
+'''
+Because For now im using heroku as a free service the dyno's will go away after 30 minutes of inactivity
+This route is a heartbeat message that will go out ever 5 minutes just so both the frontend app
+and the webserver will stay running
+'''
+@app.route('/heartbeat', methods=['GET'])
+def getHeartBeat():
+    return "Can't Stop Staying Alive"
+
 @app.route('/listOfItems', methods=['POST'])
 @cross_origin()
 def findListOfItemsOrdered():
@@ -21,7 +30,7 @@ def findListOfItemsOrdered():
     websitesToSearch = request.json["websitesToSearch"]
 
 #TODO look at this post as it might be the solution for allowing threading of the chrome driver
-#https://medium.com/@mikelcbrowne/running-chromedriver-with-python-selenium-on-heroku-acc1566d161c
+# https://medium.com/@mikelcbrowne/running-chromedriver-with-python-selenium-on-heroku-acc1566d161c
     scrapperFutures = []
     # keep these in scope so we can finish them
     scrappers = []
