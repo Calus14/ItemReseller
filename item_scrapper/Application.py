@@ -55,7 +55,6 @@ def findListOfItemsOrdered():
 
     return jsonify(jsonHelper)
 
-
 '''
 Will try to add a new Subscription object to the data base, if the email already exists will update the data on it.
 '''
