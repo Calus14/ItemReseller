@@ -20,6 +20,8 @@ def findListOfItemsOrdered():
     searchItem = request.json["searchItem"]
     websitesToSearch = request.json["websitesToSearch"]
 
+#TODO look at this post as it might be the solution for allowing threading of the chrome driver
+#https://medium.com/@mikelcbrowne/running-chromedriver-with-python-selenium-on-heroku-acc1566d161c
     scrapperFutures = []
     # keep these in scope so we can finish them
     scrappers = []
