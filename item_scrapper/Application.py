@@ -45,7 +45,6 @@ def findListOfItemsOrdered():
     for scrapper in scrappers:
         scrapper.finish()
 
-
     sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
     returnList = []
