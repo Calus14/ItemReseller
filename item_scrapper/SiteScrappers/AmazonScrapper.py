@@ -1,19 +1,20 @@
-import time
 import re
-from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
-from webdriver_manager.chrome import ChromeDriverManager
-
+import requests
+from lxml import etree
+from lxml import html
+import urllib.parse
 from item_scrapper.SiteScrappers.WebsiteItem import WebsiteItem
 from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 
 
 class AmazonScrapper(WebsiteScrapper):
 
-    url = "https://www.amazon.com/"
 
-    searchBoxXpath = "//*[@id='twotabsearchtextbox']"
-    searchButtonXpath = "//header/div/div[@id='nav-belt']/div[@class='nav-fill']/div/form/div[@class='nav-right']/div/input"
+    url = "https://www.amazon.com/"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
+    }
+    searchedItemHtml = None
 
     itemPageXpath = "//div[@class='s-main-slot s-result-list s-search-results sg-row']"
     itemXpath = "//div[@data-index]"
@@ -28,46 +29,40 @@ class AmazonScrapper(WebsiteScrapper):
 
     itemPictureHtml = '<div class="a-section aok-relative s-image.*">'
 
-    def initializeScrapper(self):
-        self.myDriver = webdriver.Chrome(ChromeDriverManager().install())
-        self.myDriver.get(self.url)
-        print("Initializted Amazon Scrapper")
+    def initializeScrapper(self, itemToSearch):
+        itemUrl = self.url+"s?k="+urllib.parse.quote(itemToSearch)
+        itemsPage = requests.get(itemUrl, headers=self.headers)
+        self.searchedItemHtml = html.fromstring(itemsPage.content)
 
-
-    def enterItemSearch(self, itemToSearch):
-        try:
-            searchBox = self.myDriver.find_element_by_xpath(self.searchBoxXpath)
-            searchBox.send_keys(itemToSearch)
-            searchButton = self.myDriver.find_element_by_xpath(self.searchButtonXpath)
-            searchButton.click()
-        except NoSuchElementException as e:
-            print(e)
-            print("Failed to enter into the text box and press the button")
-            return
 
     def getPossibleItemWebElements(self):
         #Only look at the first page
-        for tries in range(self.maxRetries):
-            try:
-                itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemXpath)
-                print("Amazon list size")
-                print(len(itemList))
-                return itemList
+        try:
+            itemList = self.searchedItemHtml.xpath(self.itemPageXpath + self.itemXpath)
+            print("Amazon list size")
+            print(len(itemList))
+            return itemList
 
-            except Exception as e:
-                print(e)
-                time.sleep(1)
-        return None
+        except Exception as e:
+            print(e)
 
-    def isValidWebElement(self, webElement):
-        itemHtml = webElement.get_attribute("innerHTML")
 
-        if( not self.itemDollarHtml in itemHtml or not self.itemDecimalHtml in itemHtml or not re.search(self.itemNameHtml, itemHtml) ):
+    def isValidWebElement(self, htmlElement):
+
+        itemHtml = etree.tostring(htmlElement, pretty_print=True).decode("utf-8")
+
+        if( not self.itemDollarHtml in itemHtml ):
             return False
+        elif( not self.itemDecimalHtml in itemHtml ):
+            return False
+        elif( not re.search(self.itemNameHtml, itemHtml) ):
+            return False
+
         return True
 
-    def getItemFromWebElement(self, webElement):
-        itemHtml = webElement.get_attribute("innerHTML")
+    def getItemFromWebElement(self, htmlElement):
+        itemHtml = etree.tostring( htmlElement, pretty_print=True).decode("utf-8")
+
         dollarStartIndex = itemHtml.find(self.itemDollarHtml) + len(self.itemDollarHtml)
         dollarEndIndex = itemHtml.find(self.itemDecimalHtml)
 
@@ -105,7 +100,3 @@ class AmazonScrapper(WebsiteScrapper):
             fullItem.itemLink = itemLink
 
         return fullItem
-
-
-    def finish(self):
-        self.myDriver.quit()

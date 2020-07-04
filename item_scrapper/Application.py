@@ -29,11 +29,7 @@ def findListOfItemsOrdered():
     searchItem = request.json["searchItem"]
     websitesToSearch = request.json["websitesToSearch"]
 
-#TODO look at this post as it might be the solution for allowing threading of the chrome driver
-# https://medium.com/@mikelcbrowne/running-chromedriver-with-python-selenium-on-heroku-acc1566d161c
     scrapperFutures = []
-    # keep these in scope so we can finish them
-    scrappers = []
     threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = len(websitesToSearch) * 2 )
     for website in websitesToSearch:
         if website not in possibleWebsitesToSearch:
@@ -41,24 +37,18 @@ def findListOfItemsOrdered():
             continue;
 
         websiteScrapper = copy.deepcopy(possibleWebsitesToSearch[website])
-        scrappers.append(websiteScrapper)
-        #scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
+        scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
 
     websiteItems = []
-    #for future in scrapperFutures:
-        #websiteItems.extend(future.result())
-
-    for scrapper in scrappers:
-        websiteItems.extend(scrapper.scrapeWebsite(searchItem))
-
-    for scrapper in scrappers:
-        scrapper.finish()
+    for future in scrapperFutures:
+        websiteItems.extend(future.result())
 
     sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
     returnList = []
     for item in sortedItems:
-        returnList.append( {"Name": item.itemName, "Price": "$"+str(item.itemPrice), "Image": item.itemPictureHtml, "Link": item.itemLink, "Website": item.websiteName })
+        formattedPrice = "{:.2f}".format(item.itemPrice)
+        returnList.append( {"Name": item.itemName, "Price": "$"+formattedPrice, "Image": item.itemPictureHtml, "Link": item.itemLink, "Website": item.websiteName })
 
     jsonHelper = {"sortedItems":returnList}
 

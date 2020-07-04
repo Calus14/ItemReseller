@@ -1,9 +1,8 @@
-import time
 import re
-from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
-from webdriver_manager.chrome import ChromeDriverManager
-# from threading import Thread
+import requests
+from lxml import etree
+from lxml import html
+import urllib.parse
 from item_scrapper.SiteScrappers.WebsiteItem import WebsiteItem
 from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 
@@ -11,8 +10,10 @@ from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 class EbayWebScrapper(WebsiteScrapper):
 
     url = "https://www.ebay.com/"
-    inputSearchElementXpath = "//input[@class='gh-tb ui-autocomplete-input']"
-    searchButtonElementXpath = "//input[@type='submit'][@class='btn btn-prim gh-spr'][@id='gh-btn'][@value='Search']"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
+    }
+    searchedItemHtml = None
 
     itemPageXpath = "//ul[@class]"
     itemElementXpath = "//li[@class='s-item    '][@data-view]"
@@ -23,55 +24,47 @@ class EbayWebScrapper(WebsiteScrapper):
     itemNameHtml = '<h3 class="s-item__title">'
 
     itemLinkHtml = '<a .* class="s-item__link" href='
-    itemPictureHtml = '<div class="s-item__image-helper"></div>'
+    itemPictureHtml = '<div class="s-item__image-helper"/>'
+
 
     maxRetries = 3
 
-    def initializeScrapper(self):
-        self.myDriver = webdriver.Chrome(ChromeDriverManager().install())
-        self.myDriver.get(self.url)
-        print("Initializted ebay Scrapper")
-
-    def enterItemSearch(self, itemToSearch):
-        header = self.myDriver.find_element_by_tag_name("header")
-        try:
-            searchBox = header.find_element_by_xpath(self.inputSearchElementXpath)
-            searchBox.send_keys(itemToSearch)
-            searchButton = header.find_element_by_xpath(self.searchButtonElementXpath)
-            searchButton.click()
-        except NoSuchElementException as e:
-            print(e)
-            print("Failed to enter into the text box and press the button")
-            return
+    def initializeScrapper(self, itemToSearch):
+        itemUrl = self.url+"sch/i.html?_nkw="+urllib.parse.quote(itemToSearch)
+        itemsPage = requests.get(itemUrl, headers=self.headers)
+        self.searchedItemHtml = html.fromstring(itemsPage.content)
 
     def getPossibleItemWebElements(self):
-        for tries in range(self.maxRetries):
-            try:
-                itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemElementXpath)
-                if len(itemList) == 0:
-                    itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemElementXpathAlternative)
-                print("Ebay list size")
-                print(len(itemList))
-                return itemList
+        #Only look at the first page
+        try:
+            itemList = self.searchedItemHtml.xpath(self.itemPageXpath+self.itemElementXpath)
+            if len(itemList) == 0:
+                itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemElementXpathAlternative)
+            print("Ebay list size")
+            print(len(itemList))
+            return itemList
 
-            except Exception as e:
-                print(e)
-                time.sleep(1)
+        except Exception as e:
+            print(e)
 
-        return None
+    def isValidWebElement(self, htmlElement):
+        itemHtml = etree.tostring(htmlElement, pretty_print=True).decode("utf-8")
 
-    def isValidWebElement(self, webElement):
-        itemHtml = webElement.get_attribute("innerHTML")
-        if( not self.itemPriceHtml in itemHtml or not self.itemNameHtml in itemHtml or not self.itemPictureHtml in itemHtml ):
+        if( not self.itemPriceHtml in itemHtml ):
             return False
+        if( not self.itemNameHtml in itemHtml ):
+            return False
+        if(  not self.itemPictureHtml in itemHtml ):
+            return False
+
         return True
 
-    def getItemFromWebElement(self, webElement):
-        itemHtml = webElement.get_attribute("innerHTML")
+    def getItemFromWebElement(self, htmlElement):
+        itemHtml = etree.tostring( htmlElement, pretty_print=True).decode("utf-8")
 
         priceStartIndex = itemHtml.find(self.itemPriceHtml) + len(self.itemPriceHtml)
         priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("</span>")
-        itemPrice = -1.0
+        itemPrice = None
         try:
             itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
         except Exception as e:
