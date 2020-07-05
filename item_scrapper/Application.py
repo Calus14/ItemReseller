@@ -10,8 +10,8 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 possibleWebsitesToSearch = {
-    "Amazon" : AmazonScrapper.AmazonScrapper(),
-    "Ebay" : EbayScrapper.EbayWebScrapper(),
+    "amazon" : AmazonScrapper.AmazonScrapper(),
+    "ebay" : EbayScrapper.EbayWebScrapper(),
 }
 
 '''
