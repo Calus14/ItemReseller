@@ -25,7 +25,7 @@ class SubscriptionManager:
     # Helper function for other managers to call
     def containsSubscription(self, userId, item):
         cur = self.databaseManager.databaseConnection.cursor()
-        sqlString = "SELECT user_id, item_name FROM subscriptions WHERE user_id = {} AND item_name = '{}'".format(userId, item)
+        sqlString = "SELECT user_id, item_name FROM subscriptions WHERE user_id = '{}' AND item_name = '{}'".format(userId, item)
 
         try:
             cur.execute(sqlString)
@@ -45,7 +45,7 @@ class SubscriptionManager:
         #TODO Upon adding a subscription add a new item and fire off an event to find its average price if it is a new item
 
         if( self.containsSubscription(subscription.userId, subscription.itemName) ):
-            raise Exception ("A Subscription for the item %s already exists for this user", subscription.itemName)
+            raise Exception ("A Subscription for the item {} already exists for this user".format(subscription.itemName) )
 
         cur = self.databaseManager.databaseConnection.cursor()
         insertCommand =  """
