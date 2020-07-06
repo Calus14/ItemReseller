@@ -1,6 +1,6 @@
 from flask_mail import Mail, Message
 import os
-class EmailManager:
+class EmailBroker:
 
     myMailer = None
     flaskApp = None

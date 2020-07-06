@@ -1,17 +1,17 @@
 from item_scrapper import Application
-from item_scrapper.EmailManager import EmailManager
+from item_scrapper.EmailBroker import EmailBroker
 import os
 
 ''' TODO REMOVE this and place in a docker file later '''
 try:
-    EmailManager.userName = os.environ['EMAIL_USER']
+    EmailBroker.userName = os.environ['EMAIL_USER']
 except KeyError:
-    EmailManager.userName = "itemSearcherTest@gmail.com"
+    EmailBroker.userName = "itemSearcherTest@gmail.com"
 
 try:
-    EmailManager.password = os.environ['EMAIL_Password']
+    EmailBroker.password = os.environ['EMAIL_Password']
 except KeyError:
-    EmailManager.password = "wlptzpegcjasaqga"
+    EmailBroker.password = "wlptzpegcjasaqga"
 
 try:
     port = os.environ['PORT']

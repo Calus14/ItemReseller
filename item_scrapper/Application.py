@@ -1,9 +1,14 @@
+from item_scrapper.Database.User.User import User
+from item_scrapper.Database.User.UserManager import UserManager
 from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
-from item_scrapper import EmailManager
 import concurrent.futures
 import copy
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
+
+from item_scrapper.Database.DatabaseManager import DatabaseManager
+from item_scrapper.Database.Subscription.SubscriptionManager import SubscriptionManager
+from item_scrapper.Database.Subscription.Subscription import Subscription
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -13,6 +18,15 @@ possibleWebsitesToSearch = {
     "amazon" : AmazonScrapper.AmazonScrapper(),
     "ebay" : EbayScrapper.EbayWebScrapper(),
 }
+
+'''
+Managers for databases, emails, etc. If this ever grows large each is intended to be its own micro service
+'''
+dbManager = DatabaseManager()
+dbManager.createTablesIfNeeded()
+
+subscriptionManager = SubscriptionManager(databaseManager=dbManager)
+userManager = UserManager(databaseManager=dbManager)
 
 '''
 Because For now im using heroku as a free service the dyno's will go away after 30 minutes of inactivity
@@ -55,10 +69,41 @@ def findListOfItemsOrdered():
     return jsonify(jsonHelper)
 
 '''
-Will try to add a new Subscription object to the data base, if the email already exists will update the data on it.
+Tries to add a new subscribption object to the database. the user ID much match one in our user db and be unique on that user
 '''
 @app.route('/submitSubscription', methods=['POST'])
 @cross_origin()
 def addSubscription():
     print("hit the submit")
-    return "This Worked"
+    newSub = Subscription(userId = request.json['userId'],
+                          itemName = request.json['itemName'],
+                          pricePoint = request.json['pricePoint'],
+                          priceType = request.json['priceType'],
+                          hoursToLive = int(request.json['hoursToLive']) )
+    try:
+        subscriptionManager.addSubscription(subscription = newSub)
+    except Exception as e:
+        print(e)
+        return
+
+    print("Added subscription now with id "+str(newSub.subscriptionId))
+    return jsonify(newSub)
+
+
+'''
+Tries to add a new user
+'''
+@app.route('/addUser', methods=['POST'])
+@cross_origin()
+def addUser():
+    print("hit the add User")
+    newUser = User(email = request.json['email'],
+                    password = request.json['password'] )
+    try:
+        userManager.addUser(user = newUser)
+    except Exception as e:
+        print(e)
+        return
+
+    print("Added subscription now with id "+newUser.email)
+    return jsonify( {"userUniqueId" : newUser.uniqueId} )
