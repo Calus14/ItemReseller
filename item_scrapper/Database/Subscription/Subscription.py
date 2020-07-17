@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import uuid
+import json
 
 class Subscription:
 
@@ -21,3 +22,14 @@ class Subscription:
             self.priceType = priceType
         self.creationTime = datetime.now()
         self.expirationTime = self.creationTime + timedelta(hours= hoursToLive)
+
+    def toJSON(self):
+        return {"subscriptionId" : self.subscriptionId,
+                "userId" : self.userId,
+                "itemName" : self.itemName,
+                "pricePoint" : self.pricePoint,
+                "priceType" : self.priceType,
+                "creationTime" : self.creationTime,
+                "expirationTime" : self.expirationTime
+                }
+

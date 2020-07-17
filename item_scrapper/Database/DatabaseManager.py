@@ -44,6 +44,7 @@ class DatabaseManager:
                 user_id UUID PRIMARY KEY,
                 user_email VARCHAR(255) NOT NULL,
                 user_password VARCHAR(255) NOT NULL,
+                CONSTRAINT userEmailKey UNIQUE(user_email),
                 creation_time TIME  NOT NULL
             )
             """,
@@ -55,6 +56,7 @@ class DatabaseManager:
                 price_type VARCHAR(255),
                 creation_time TIME  NOT NULL,
                 expiration_time TIME NOT NULL,
+                CONSTRAINT userItemKey UNIQUE(user_id, item_name),
                 FOREIGN KEY (user_id)
                     REFERENCES users (user_id)
                     ON UPDATE CASCADE ON DELETE CASCADE

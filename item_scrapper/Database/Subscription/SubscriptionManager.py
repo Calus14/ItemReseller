@@ -18,7 +18,14 @@ class SubscriptionManager:
     # Called when expiration or the user asks to delete the subscription
     def deleteSubscription(self, subscriptionId):
         cur = self.databaseManager.databaseConnection.cursor()
-        cur.execute("DELETE FROM subscriptions WHERE subscription_id={}".format(subscriptionId))
+        try:
+            cur.execute("DELETE FROM subscriptions WHERE subscription_id={}".format(subscriptionId))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
         self.databaseManager.databaseConnection.commit()
         cur.close()
 
@@ -44,16 +51,20 @@ class SubscriptionManager:
     def addSubscription(self, subscription):
         #TODO Upon adding a subscription add a new item and fire off an event to find its average price if it is a new item
 
-        if( self.containsSubscription(subscription.userId, subscription.itemName) ):
-            raise Exception ("A Subscription for the item {} already exists for this user".format(subscription.itemName) )
-
         cur = self.databaseManager.databaseConnection.cursor()
         insertCommand =  """
                             INSERT INTO subscriptions (subscription_id, user_id, item_name, price_point, price_type, creation_time, expiration_time)
                             VALUES (%s, %s, %s, %s, %s, %s, %s)    
                         """
 
-        cur.execute(insertCommand, (subscription.subscriptionId, subscription.userId, subscription.itemName, str(subscription.pricePoint), subscription.priceType, subscription.creationTime, subscription.expirationTime))
+        try:
+            cur.execute(insertCommand, (subscription.subscriptionId, subscription.userId, subscription.itemName, str(subscription.pricePoint), subscription.priceType, subscription.creationTime, subscription.expirationTime))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
         self.databaseManager.databaseConnection.commit()
         cur.close()
 
@@ -69,7 +80,14 @@ class SubscriptionManager:
                             WHERE subscription_id = %s     
                         """
 
-        cur.execute(updateCommand, (str(subscription.pricePoint), subscription.priceType, subscription.subscriptionId))
+        try:
+            cur.execute(updateCommand, (str(subscription.pricePoint), subscription.priceType, subscription.subscriptionId))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
         self.databaseManager.databaseConnection.commit()
         cur.close()
 
@@ -78,7 +96,14 @@ class SubscriptionManager:
         cur = self.databaseManager.databaseConnection.cursor()
 
         getByItemCommand = "SELECT * from subscriptions WHERE item_name='{}'".format(itemName)
-        cur.execute(getByItemCommand, (itemName))
+        try:
+            cur.execute(getByItemCommand, (itemName))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
         subscriptionsForItem = cur.fetchall()
         self.databaseManager.databaseConnection.commit()
         cur.close()

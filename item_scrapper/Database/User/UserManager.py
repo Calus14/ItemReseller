@@ -43,7 +43,14 @@ class UserManager:
                             VALUES (%s, %s, %s, %s)    
                         """
 
-        cur.execute(insertCommand, (user.uniqueId, user.email, user.password, user.dateCreated))
+        try:
+            cur.execute(insertCommand, (user.uniqueId, user.email, user.password, user.dateCreated))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.commit()
+            cur.close()
+            raise(e)
+
         self.databaseManager.databaseConnection.commit()
         cur.close()
 
@@ -60,19 +67,35 @@ class UserManager:
                             SET user_email = %s, user_password = %s, creation_time = %s
                             WHERE user_id = %s     
                         """
-
-        cur.execute(updateCommand, (user.email, user.password, dateupdated, user.uniqueId) )
+        try:
+            cur.execute(updateCommand, (user.email, user.password, dateupdated, user.uniqueId) )
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.commit()
+            cur.close()
+            raise(e)
         self.databaseManager.databaseConnection.commit()
         cur.close()
 
     # TODO work on this when we actually care about security
-    def getUser(self, uuid):
+    def getUser(self, email, password):
         cur = self.databaseManager.databaseConnection.cursor()
 
-        getByUUidCommand = "SELECT * from users WHERE user_id={}".format(uuid)
-        cur.execute(getByUUidCommand)
-        user = cur.fetch()
+        getByUUidCommand = "SELECT * from users WHERE user_email=%s AND user_password=%s"
+        try:
+            cur.execute(getByUUidCommand, (email, password))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.commit()
+            cur.close()
+            raise(e)
+
+        user = cur.fetchone()
+        if user is None:
+            raise( Exception("User was not able to be found"))
+
+        userId = user[0]
 
         self.databaseManager.databaseConnection.commit()
         cur.close()
-        return user
+        return userId

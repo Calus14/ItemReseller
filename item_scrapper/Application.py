@@ -3,7 +3,7 @@ from item_scrapper.Database.User.UserManager import UserManager
 from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
 import concurrent.futures
 import copy
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort, Response
 from flask_cors import CORS, cross_origin
 
 from item_scrapper.Database.DatabaseManager import DatabaseManager
@@ -84,11 +84,42 @@ def addSubscription():
         subscriptionManager.addSubscription(subscription = newSub)
     except Exception as e:
         print(e)
-        return
+        abort( 500, Response(str(e)) )
 
     print("Added subscription now with id "+str(newSub.subscriptionId))
-    return jsonify(newSub)
+    return jsonify(newSub.toJSON())
 
+'''
+Checks to see if a user exists
+'''
+@app.route('/userExists', methods=['POST'])
+@cross_origin()
+def checkUserExistance():
+    print("hit the User exsits")
+
+    print(request.json)
+    if userManager.containsUser(request.json['email']) :
+        print("User Found to be contained")
+        return "true"
+    else:
+        return "false"
+
+''''
+TODO Fix this to use vue authentication refering to https://blog.sqreen.com/authentication-best-practices-vue/
+'''
+@app.route('/loginUser', methods=['POST'])
+@cross_origin()
+def loginUser():
+    print ("hit the login user")
+
+    try:
+        userId = userManager.getUser(request.json['email'], request.json['password'])
+    except Exception as e:
+        print("Invalid user login for email "+request.json['email'])
+        abort( 404, Response(str(e)) )
+
+    #Dont return the full object it has other info thats sensative.
+    return jsonify( {"userUniqueId" : userId} )
 
 '''
 Tries to add a new user
@@ -103,7 +134,7 @@ def addUser():
         userManager.addUser(user = newUser)
     except Exception as e:
         print(e)
-        return
+        abort( 500, Response(str(e)) )
 
     print("Added subscription now with id "+newUser.email)
     return jsonify( {"userUniqueId" : newUser.uniqueId} )

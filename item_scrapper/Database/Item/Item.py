@@ -1,4 +1,6 @@
 
+import json
+
 class Item:
 
     itemName: None
@@ -6,3 +8,6 @@ class Item:
 
     def __init__(self, itemName):
         self.itemName = itemName
+
+    def toJSON(self):
+        return json.dumps(self.__dict__)
