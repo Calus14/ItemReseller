@@ -21,8 +21,8 @@ class DatabaseManager:
             self.username = os.getenv("USERNAME")
         if( "PASSWORD" in os.environ):
             self.password = os.getenv("PASSWORD")
-        if( "PORT" in os.environ):
-            self.port = os.getenv("PORT")
+        if( "DATABASEPORT" in os.environ):
+            self.port = os.getenv("DATABASEPORT")
 
         psycopg2.extras.register_uuid()
         print( "trying to connect with "+self.databaseHost+"\n"+self.databaseName+"\n"+self.username+"\n"+self.password+"\n"+self.port+"\n")
