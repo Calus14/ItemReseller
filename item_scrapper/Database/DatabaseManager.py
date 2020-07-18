@@ -25,7 +25,6 @@ class DatabaseManager:
             self.port = os.getenv("DATABASEPORT")
 
         psycopg2.extras.register_uuid()
-        print( "trying to connect with "+self.databaseHost+"\n"+self.databaseName+"\n"+self.username+"\n"+self.password+"\n"+self.port+"\n")
 
         self.databaseConnection = psycopg2.connect(
                             host = self.databaseHost,

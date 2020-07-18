@@ -38,8 +38,7 @@ class EbayWebScrapper(WebsiteScrapper):
         #Only look at the first page
         try:
             itemList = self.searchedItemHtml.xpath(self.itemPageXpath+self.itemElementXpath)
-            if len(itemList) == 0:
-                itemList = self.myDriver.find_elements_by_xpath(self.itemPageXpath+self.itemElementXpathAlternative)
+            itemList = itemList + self.searchedItemHtml.xpath(self.itemPageXpath+self.itemElementXpathAlternative)
             print("Ebay list size")
             print(len(itemList))
             return itemList
