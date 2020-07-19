@@ -77,7 +77,8 @@ class AmazonScrapper(WebsiteScrapper):
         if( matchObj ):
             linkStartIndex = matchObj.end(0)
             linkEndIndex = linkStartIndex + itemHtml[linkStartIndex:].find(">")
-            itemLink = itemHtml[linkStartIndex:linkEndIndex].replace('"', '')
+            # Amazon uses an internal reference link
+            itemLink = "https://amazon.com"+itemHtml[linkStartIndex:linkEndIndex].replace('"', '')
 
         pictureHtmlLink = ""
         pictureMatch = re.search(self.itemPictureHtml, itemHtml)

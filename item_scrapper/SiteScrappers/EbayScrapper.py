@@ -20,12 +20,12 @@ class EbayWebScrapper(WebsiteScrapper):
     itemElementXpathAlternative = "//li[@class='s-item    s-item--watch-at-corner'][@data-view]"
 
     itemPriceHtml = '<span class="s-item__price">'
+    italicPriceHtml = '<span class="ITALIC">'
 
     itemNameHtml = '<h3 class="s-item__title">'
 
     itemLinkHtml = '<a .* class="s-item__link" href='
     itemPictureHtml = '<div class="s-item__image-helper"/>'
-
 
     maxRetries = 3
 
@@ -72,7 +72,13 @@ class EbayWebScrapper(WebsiteScrapper):
                 priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("<span class")
                 itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
             except Exception as e2:
-                print("price fail html is: "+itemHtml)
+                # Finally there is also an option of it being italicized for some reason
+                priceStartIndex = itemHtml.find(self.italicPriceHtml) + len(self.italicPriceHtml)
+                priceEndIndex = priceStartIndex + itemHtml[priceStartIndex:].find("</span>")
+                try:
+                    itemPrice = float( itemHtml[priceStartIndex:priceEndIndex].replace(',', '').replace('$', '') )
+                except:
+                    print("price fail html is: "+itemHtml)
 
         itemLink = ""
         if( re.search(self.itemLinkHtml, itemHtml) ):

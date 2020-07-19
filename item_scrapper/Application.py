@@ -57,6 +57,10 @@ def findListOfItemsOrdered():
     for future in scrapperFutures:
         websiteItems.extend(future.result())
 
+    for item in websiteItems:
+        if item.itemPrice is None:
+            print("Here")
+
     sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
     returnList = []
