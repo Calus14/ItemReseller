@@ -3,6 +3,7 @@ import requests
 from lxml import etree
 from lxml import html
 import urllib.parse
+import json
 from item_scrapper.SiteScrappers.WebsiteItem import WebsiteItem
 from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 
@@ -11,9 +12,16 @@ class AmazonScrapper(WebsiteScrapper):
 
 
     url = "https://www.amazon.com/"
-    headers = {
+    headerMissingTraceId = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+        "Dnt": "1",
+        "Host": "httpbin.org",
+        "Upgrade-Insecure-Requests": "1",
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
     }
+
     searchedItemHtml = None
 
     itemPageXpath = "//div[@class='s-main-slot s-result-list s-search-results sg-row']"
@@ -31,7 +39,16 @@ class AmazonScrapper(WebsiteScrapper):
 
     def initializeScrapper(self, itemToSearch):
         itemUrl = self.url+"s?k="+urllib.parse.quote(itemToSearch)
-        itemsPage = requests.get(itemUrl, headers=self.headers)
+
+        #Refer to this post by Scrape Hero to understand why we need to fake out each call. In the future might also need to randomize to avoid bot detection
+        #https://www.scrapehero.com/how-to-fake-and-rotate-user-agents-using-python-3/
+        responseAsBytes = requests.get("http://httpbin.org/headers",headers=self.headerMissingTraceId).content
+        headersAsString = responseAsBytes.decode("utf-8")
+        headers = json.loads(headersAsString)['headers']
+
+
+        itemsPage = requests.get(itemUrl, headers=headers)
+        print(itemsPage.content.decode("utf-8"))
         self.searchedItemHtml = html.fromstring(itemsPage.content)
 
 
