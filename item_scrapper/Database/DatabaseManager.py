@@ -72,8 +72,8 @@ class DatabaseManager:
             CREATE TABLE IF NOT EXISTS notificationRecords (
                 recordId UUID PRIMARY KEY,
                 subscriptionId UUID,
-                itemHash VARCHAR(255),
-                CONSTRAINT subItemHashKey UNIQUE(subscriptionId, itemHash)
+                itemLink VARCHAR(255),
+                CONSTRAINT subItemKey UNIQUE(subscriptionId, itemLink)
             )
             """
 

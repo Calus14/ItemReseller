@@ -27,9 +27,9 @@ class NotificationRecordManager:
         cur.close()
 
     # Helper function for other managers to call
-    def containsRecord(self, subscriptionId, itemHash):
+    def containsRecord(self, subscriptionId, itemLink):
         cur = self.databaseManager.databaseConnection.cursor()
-        sqlString = "SELECT notificationRecords, itemHash FROM subscriptionHistoryRecords WHERE subscriptionId = '{}' AND itemHash = '{}'".format(subscriptionId, itemHash)
+        sqlString = "SELECT notificationRecords, itemLink FROM subscriptionHistoryRecords WHERE subscriptionId = '{}' AND itemLink = '{}'".format(subscriptionId, itemLink)
 
         try:
             cur.execute(sqlString)
@@ -48,12 +48,12 @@ class NotificationRecordManager:
     def addRecord(self, record):
         cur = self.databaseManager.databaseConnection.cursor()
         insertCommand = """
-                            INSERT INTO notificationRecords (recordId, subscriptionId, itemHash)
+                            INSERT INTO notificationRecords (recordId, subscriptionId, itemLink)
                             VALUES (%s, %s, %s)    
                         """
 
         try:
-            cur.execute(insertCommand, (record.recordId, record.subscriptionId, record.itemHash))
+            cur.execute(insertCommand, (record.recordId, record.subscriptionId, record.itemLink))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()

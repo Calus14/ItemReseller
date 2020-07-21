@@ -12,17 +12,17 @@ class NotificationRecord:
     recordId = None
     # A Tie to the subsciption its a history for so we can purge this db when the sub expires
     subscriptionId = None
-    # A Hash of the item itself that the user was notified about (initially just a hash of the link that is sent)
-    itemHash = None
+    # Effectively a hash for each record because each item will resolve to a different page
+    itemLink = None
 
-    def __init__(self, recordId, subscriptionId, itemHash):
+    def __init__(self, recordId, subscriptionId, itemLink):
         self.recordId = recordId
         self.subscriptionId = subscriptionId
-        self.itemHash = itemHash
+        self.itemLink = itemLink
 
     def toJSON(self):
         return {"recordId" : self.recordId,
                 "subscriptionId" : self.subscriptionId,
-                "itemHash" : self.itemHash
+                "itemLink" : self.itemLink
                 }
 

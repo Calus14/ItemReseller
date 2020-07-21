@@ -67,6 +67,7 @@ class MainNotificationThread:
     # the items are not sorted so they are in ranking of highest to lowest relevance for each site
     def calculateAverageOfItem(self, itemInstances):
         print("calculating average of each item")
+        itemInstances = sorted(itemInstances, key=lambda item: item.itemPrice)
         totalValue = 0
         for item in itemInstances:
             totalValue = totalValue+item.itemPrice
@@ -79,7 +80,7 @@ class MainNotificationThread:
 
     def itemInstanceHasBeenNotifiedAbout(self, subscription, itemInstance):
         try:
-            exists = Application.notificationsRecsManager.containsRecord(subscription.subscriptionId, hash(itemInstance.itemLink))
+            exists = Application.notificationsRecsManager.containsRecord(subscription.subscriptionId, itemInstance.itemLink)
             print(" Turns out that this item instance with "+itemInstance.itemName+" has a value of :")
             print(exists)
             return exists
@@ -117,5 +118,5 @@ class MainNotificationThread:
 
         #Make a record to show that we notified about it already
         for itemInstance in itemInstances:
-            notificationRecord = NotificationRecord(uuid.uuid4(), subscription.subscriptionId, hash(itemInstance.itemLink))
+            notificationRecord = NotificationRecord(uuid.uuid4(), subscription.subscriptionId, itemInstance.itemLink)
             Application.notificationsRecsManager.addRecord(notificationRecord)

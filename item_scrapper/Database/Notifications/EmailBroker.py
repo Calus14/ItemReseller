@@ -32,17 +32,17 @@ class EmailBroker:
             if len(websiteItems) == 0:
                 return
             #For whatever reason this makes a tuple
-            msgBody = "<pre><h3>This Email is from ImBrokeButWantIt.com<\\h3>\n"
+            msgBody = "<pre><h3>This Email is from ImBrokeButWantIt.com</h3>\n"
             msgBody = msgBody + "\n You have an active search for the anything returned under "+itemName+" within a set dollar amount or percentage of the market average.\n"
-            msgBody = msgBody + "The following items have been found to match this result:\n"
+            msgBody = msgBody + "The following items have been found to match this result:\n "
             for item in  websiteItems:
-                msgBody = msgBody + "<a href=\""+item.itemLink+"\">"+item.itemName+"<\\a> : Priced at <b>"+str(item.itemPrice)+"<\\b>\n"
+                msgBody = msgBody + "<a href=\""+item.itemLink+"\">"+item.itemName+"</a> : Priced at <b>"+str(item.itemPrice)+"$</b>\n\n "
 
-            msgBody = msgBody + "Thank you very much, Hope this helps!\n Sincerly, Big Chungus<\\pre>"
+            msgBody = msgBody + "Thank you very much, Hope this helps!\n Sincerly, Big Chungus</pre>"
 
             emailMessage = Message("Your Subscribed Search For "+itemName+" has found some items!",
                                    sender=self.flaskApp.config.get("MAIL_USERNAME"),
-                                   html=msgBody[0],
+                                   html=msgBody,
                                    recipients=[emailUser],
                                    )
 
