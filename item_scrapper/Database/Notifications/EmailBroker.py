@@ -4,8 +4,8 @@ class EmailBroker:
 
     myMailer = None
     flaskApp = None
-    userName = "chblaze@gmail.com"
-    password = "Frontfull1"
+    userName = "notifications@imbrokebutwantit.com"
+    password = "P4ssw0rd1!"
 
     def __init__(self, flaskApp):
         self.flaskApp = flaskApp
@@ -15,7 +15,7 @@ class EmailBroker:
             self.password = os.getenv("EMAILPASSWORD")
 
         mail_settings = {
-            "MAIL_SERVER": 'smtp.gmail.com',
+            "MAIL_SERVER": 'smtp.emailmg.domain.com',
             "MAIL_PORT": 465,
             "MAIL_USE_TLS": False,
             "MAIL_USE_SSL": True,

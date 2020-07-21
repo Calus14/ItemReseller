@@ -56,8 +56,6 @@ class AmazonScrapper(WebsiteScrapper):
         #Only look at the first page
         try:
             itemList = self.searchedItemHtml.xpath(self.itemPageXpath + self.itemXpath)
-            print("Amazon list size")
-            print(len(itemList))
             return itemList
 
         except Exception as e:

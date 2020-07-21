@@ -40,7 +40,8 @@ userManager = UserManager(databaseManager=dbManager)
 notificationsRecsManager = NotificationRecordManager(databaseManager=dbManager)
 
 notificationContinuousThread = MainNotificationThread()
-#_thread.start_new_thread ( notificationContinuousThread.runThread, () )
+
+_thread.start_new_thread ( notificationContinuousThread.runThread, () )
 
 # Helper function that can be called anywhere in the server
 def findItemsHelper(websitesToSearch, searchItem):

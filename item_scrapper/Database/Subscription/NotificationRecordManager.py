@@ -53,7 +53,7 @@ class NotificationRecordManager:
                         """
 
         try:
-            cur.execute(insertCommand, (record.recordId, record.subscriptionId, record.userId))
+            cur.execute(insertCommand, (record.recordId, record.subscriptionId, record.itemHash))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()

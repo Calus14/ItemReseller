@@ -39,8 +39,6 @@ class EbayWebScrapper(WebsiteScrapper):
         try:
             itemList = self.searchedItemHtml.xpath(self.itemPageXpath+self.itemElementXpath)
             itemList = itemList + self.searchedItemHtml.xpath(self.itemPageXpath+self.itemElementXpathAlternative)
-            print("Ebay list size")
-            print(len(itemList))
             return itemList
 
         except Exception as e:
