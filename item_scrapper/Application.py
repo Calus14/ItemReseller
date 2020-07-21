@@ -1,13 +1,20 @@
+
+
+from item_scrapper.Database.Item.ItemManager import ItemManager
+from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
+from item_scrapper.Database.Notifications.MainNotificationThread import MainNotificationThread
 from item_scrapper.Database.User.User import User
 from item_scrapper.Database.User.UserManager import UserManager
 from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
 import concurrent.futures
+import _thread
 import copy
 from flask import Flask, jsonify, request, abort, Response
 from flask_cors import CORS, cross_origin
 
 from item_scrapper.Database.DatabaseManager import DatabaseManager
 from item_scrapper.Database.Subscription.SubscriptionManager import SubscriptionManager
+from item_scrapper.Database.Subscription.NotificationRecordManager import NotificationRecordManager
 from item_scrapper.Database.Subscription.Subscription import Subscription
 
 app = Flask(__name__)
@@ -25,8 +32,34 @@ Managers for databases, emails, etc. If this ever grows large each is intended t
 dbManager = DatabaseManager()
 dbManager.createTablesIfNeeded()
 
+emailBroker = EmailBroker(app)
+
 subscriptionManager = SubscriptionManager(databaseManager=dbManager)
+itemManager = ItemManager(databaseManager=dbManager)
 userManager = UserManager(databaseManager=dbManager)
+notificationsRecsManager = NotificationRecordManager(databaseManager=dbManager)
+
+notificationContinuousThread = MainNotificationThread()
+#_thread.start_new_thread ( notificationContinuousThread.runThread, () )
+
+# Helper function that can be called anywhere in the server
+def findItemsHelper(websitesToSearch, searchItem):
+    scrapperFutures = []
+    threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = len(websitesToSearch) )
+    for website in websitesToSearch:
+        if website not in possibleWebsitesToSearch:
+            print("Error! Was sent a website named "+website+" but no scrapper exists for it.")
+            continue;
+
+        websiteScrapper = copy.deepcopy(possibleWebsitesToSearch[website])
+        scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
+
+    websiteItems = []
+    for future in scrapperFutures:
+        websiteItems.extend(future.result())
+
+    return websiteItems
+
 
 '''
 Because For now im using heroku as a free service the dyno's will go away after 30 minutes of inactivity
@@ -43,23 +76,7 @@ def findListOfItemsOrdered():
     searchItem = request.json["searchItem"]
     websitesToSearch = request.json["websitesToSearch"]
 
-    scrapperFutures = []
-    threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = len(websitesToSearch) * 2 )
-    for website in websitesToSearch:
-        if website not in possibleWebsitesToSearch:
-            print("Error! Was sent a website named "+website+" but no scrapper exists for it.")
-            continue;
-
-        websiteScrapper = copy.deepcopy(possibleWebsitesToSearch[website])
-        scrapperFutures.append( threadExecutor.submit(websiteScrapper.scrapeWebsite, searchItem) )
-
-    websiteItems = []
-    for future in scrapperFutures:
-        websiteItems.extend(future.result())
-
-    for item in websiteItems:
-        if item.itemPrice is None:
-            print("Here")
+    websiteItems = findItemsHelper(websitesToSearch, searchItem)
 
     sortedItems = sorted(websiteItems, key=lambda item: item.itemPrice)
 
@@ -84,8 +101,20 @@ def addSubscription():
                           pricePoint = request.json['pricePoint'],
                           priceType = request.json['priceType'],
                           hoursToLive = int(request.json['hoursToLive']) )
+    if "Dollar" in newSub.priceType:
+        newSub.priceType = "Dollar"
+    elif "Percent" in newSub.pricePoint:
+        newSub.priceType = "Percent"
     try:
         subscriptionManager.addSubscription(subscription = newSub)
+    except Exception as e:
+        print(e)
+        abort( 500, Response(str(e)) )
+
+    # After adding a subscription we need to make a note that this item is now being watched
+    try:
+        if( itemManager.containsItem(newSub.itemName)==False ):
+            itemManager.addItem(newSub.itemName)
     except Exception as e:
         print(e)
         abort( 500, Response(str(e)) )
@@ -117,7 +146,7 @@ def loginUser():
     print ("hit the login user")
 
     try:
-        userId = userManager.getUser(request.json['email'], request.json['password'])
+        userId = userManager.getUserId(request.json['email'], request.json['password'])
     except Exception as e:
         print("Invalid user login for email "+request.json['email'])
         abort( 404, Response(str(e)) )

@@ -4,7 +4,7 @@
 Simple CRUD Wrapper for subscriptions that will be called via api's exposed to the front end. Some api's will be called
 by internal logic and not the front end
 '''
-from item_scrapper.Database.DatabaseManager import DatabaseManager
+from item_scrapper.Database.Subscription.Subscription import Subscription
 
 
 class SubscriptionManager:
@@ -105,6 +105,14 @@ class SubscriptionManager:
             raise(e)
 
         subscriptionsForItem = cur.fetchall()
+        subscriptions = []
+        # Transform from the raw sql data to the object
+        for sub in subscriptionsForItem:
+            #TODO calculate teh actual hours to live
+            subObject = Subscription(sub[1], sub[2], sub[3], sub[4], 0)
+            subObject.subscriptionId = sub[0]
+            subscriptions.append(subObject)
+
         self.databaseManager.databaseConnection.commit()
         cur.close()
-        return subscriptionsForItem
+        return subscriptions

@@ -1,5 +1,5 @@
 from item_scrapper import Application
-from item_scrapper.EmailBroker import EmailBroker
+from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 import os
 
 ''' TODO REMOVE this and place in a docker file later '''

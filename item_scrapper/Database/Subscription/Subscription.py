@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-import uuid
-import json
+import \
+    uuid
 
 class Subscription:
 

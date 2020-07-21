@@ -8,9 +8,11 @@ class User:
     password = None
     dateCreated = None
 
-    def __init__(self, password, email):
+    def __init__(self, uniqueId, email, password, dateCreated):
+        self.uniqueId = uniqueId
         self.password = password
         self.email = email
+        self.dateCreated = dateCreated
 
     def toJSON(self):
         def toJSON(self):

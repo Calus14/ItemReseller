@@ -1,5 +1,8 @@
 import uuid
 from datetime import datetime, timedelta
+
+from item_scrapper.Database.User.User import User
+
 '''
 Simple CRUD Wrapper for Users mainly it will be used to create or to login... on beta it will be a very rough draft
 but in the future will start to use AWS and google to manage passwords etc.
@@ -56,7 +59,7 @@ class UserManager:
 
     # If the user wants to change anything about themselfs
     def updateUser(self, user):
-        retrievedUser = self.getUser( user.uniqueId )
+        retrievedUser = self.getUserId( user.uniqueId )
         if( retrievedUser is None ):
             raise Exception ("A user with email %s was tried to update in the database but it does not apparently exist.", user.email)
 
@@ -78,7 +81,7 @@ class UserManager:
         cur.close()
 
     # TODO work on this when we actually care about security
-    def getUser(self, email, password):
+    def getUserId(self, email, password):
         cur = self.databaseManager.databaseConnection.cursor()
 
         getByUUidCommand = "SELECT * from users WHERE user_email=%s AND user_password=%s"
@@ -99,3 +102,25 @@ class UserManager:
         self.databaseManager.databaseConnection.commit()
         cur.close()
         return userId
+
+    def getUser(self, userId):
+        cur = self.databaseManager.databaseConnection.cursor()
+
+        getByUUidCommand = "SELECT * from users WHERE user_id='{}'".format(userId)
+        try:
+            cur.execute(getByUUidCommand)
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.commit()
+            cur.close()
+            raise(e)
+
+        user = cur.fetchone()
+        if user is None:
+            raise( Exception("User was not able to be found"))
+
+        userObj = User( user[0], user[1], user[2], user[3])
+
+        self.databaseManager.databaseConnection.commit()
+        cur.close()
+        return userObj

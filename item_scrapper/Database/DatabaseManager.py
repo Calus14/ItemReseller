@@ -67,7 +67,16 @@ class DatabaseManager:
                     item_name VARCHAR(255) PRIMARY KEY,
                     average_item_price NUMERIC(20, 10)
             )
+            """,
             """
+            CREATE TABLE IF NOT EXISTS notificationRecords (
+                recordId UUID PRIMARY KEY,
+                subscriptionId UUID,
+                itemHash VARCHAR(255),
+                CONSTRAINT subItemHashKey UNIQUE(subscriptionId, itemHash)
+            )
+            """
+
         )
 
         cursor = self.databaseConnection.cursor()
