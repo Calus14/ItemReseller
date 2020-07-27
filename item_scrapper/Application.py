@@ -1,5 +1,4 @@
 
-
 from item_scrapper.Database.Item.ItemManager import ItemManager
 from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 from item_scrapper.Database.Notifications.MainNotificationThread import MainNotificationThread
@@ -9,6 +8,8 @@ from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
 import concurrent.futures
 import _thread
 import copy
+import uuid
+from datetime import datetime
 from flask import Flask, jsonify, request, abort, Response
 from flask_cors import CORS, cross_origin
 
@@ -16,6 +17,7 @@ from item_scrapper.Database.DatabaseManager import DatabaseManager
 from item_scrapper.Database.Subscription.SubscriptionManager import SubscriptionManager
 from item_scrapper.Database.Subscription.NotificationRecordManager import NotificationRecordManager
 from item_scrapper.Database.Subscription.Subscription import Subscription
+
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -96,7 +98,6 @@ Tries to add a new subscribption object to the database. the user ID much match 
 @app.route('/submitSubscription', methods=['POST'])
 @cross_origin()
 def addSubscription():
-    print("hit the submit")
     newSub = Subscription(userId = request.json['userId'],
                           itemName = request.json['itemName'],
                           pricePoint = request.json['pricePoint'],
@@ -122,6 +123,25 @@ def addSubscription():
 
     print("Added subscription now with id "+str(newSub.subscriptionId))
     return jsonify(newSub.toJSON())
+
+'''
+Finds all active subscriptions for a given user
+'''
+@app.route("/userSubscription", methods=['GET'])
+@cross_origin()
+def getUserSubscriptions():
+    userId = request.json['userId']
+
+    try:
+        subscriptions = subscriptionManager.getSubscriptionsForUser(userId)
+        answerJsonObjs = []
+        for sub in subscriptions:
+            answerJsonObjs.append(sub.toJSON())
+        return jsonify(answerJsonObjs)
+
+    except Exception as e:
+        print(e)
+        abort( 500, Response(str(e)) )
 
 '''
 Checks to see if a user exists
@@ -162,8 +182,11 @@ Tries to add a new user
 @cross_origin()
 def addUser():
     print("hit the add User")
-    newUser = User(email = request.json['email'],
-                    password = request.json['password'] )
+    newUser = User(
+                    uniqueId = uuid.uuid4(),
+                    email = request.json['email'],
+                    password = request.json['password'],
+                    dateCreated = datetime.now())
     try:
         userManager.addUser(user = newUser)
     except Exception as e:

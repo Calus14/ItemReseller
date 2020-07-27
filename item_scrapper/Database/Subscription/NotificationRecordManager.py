@@ -29,7 +29,7 @@ class NotificationRecordManager:
     # Helper function for other managers to call
     def containsRecord(self, subscriptionId, itemLink):
         cur = self.databaseManager.databaseConnection.cursor()
-        sqlString = "SELECT notificationRecords, itemLink FROM subscriptionHistoryRecords WHERE subscriptionId = '{}' AND itemLink = '{}'".format(subscriptionId, itemLink)
+        sqlString = "SELECT notificationRecords, itemLink FROM notificationRecords WHERE subscriptionId = '{}' AND itemLink = '{}'".format(subscriptionId, itemLink)
 
         try:
             cur.execute(sqlString)

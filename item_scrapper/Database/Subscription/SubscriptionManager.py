@@ -91,13 +91,36 @@ class SubscriptionManager:
         self.databaseManager.databaseConnection.commit()
         cur.close()
 
+    def getSubscriptionsForUser(self, userUUID):
+        cur = self.databaseManager.databaseConnection.cursor()
+
+        getByUserCommand = "SELECT * FROM subscriptions WHERE user_id='{}".format(str(userUUID))
+        try:
+            cur.execute(getByUserCommand)
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
+        subsDbObjects = cur.fetchall()
+        subs = []
+        for dbObject in subsDbObjects:
+            subscription = Subscription(dbObject[1], dbObject[2], dbObject[3], dbObject[4], 0)
+            subscription.subscriptionId = dbObject[0]
+            subs.append(subscription)
+
+        self.databaseManager.databaseConnection.commit()
+        cur.close()
+        return subs
+
     # Used internally to query see if any subscription meets an item found on the internet
-    def getSubscriptions(self, itemName):
+    def getSubscriptionsForItem(self, itemName):
         cur = self.databaseManager.databaseConnection.cursor()
 
         getByItemCommand = "SELECT * from subscriptions WHERE item_name='{}'".format(itemName)
         try:
-            cur.execute(getByItemCommand, (itemName))
+            cur.execute(getByItemCommand)
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()

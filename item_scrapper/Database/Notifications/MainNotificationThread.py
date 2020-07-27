@@ -1,5 +1,6 @@
 import concurrent.futures
 import uuid
+import time
 
 from item_scrapper import Application
 from item_scrapper.Database.Subscription.NotificationRecord import NotificationRecord
@@ -19,19 +20,25 @@ class MainNotificationThread:
     # each processing 1 item at a time
     maximumWorkers = 5
 
-    def __init__(self, rateToRunInSeconds = 30, maximumWorkers = 5):
+    #Kill switch for the thread
+    shouldRun = True
+
+    def __init__(self, rateToRunInSeconds = 300, maximumWorkers = 5):
         self.rateToRunInSeconds = rateToRunInSeconds
         self.maximumWorkers = maximumWorkers
 
     # Call this from the thread you create *start_new_thread*
     def runThread(self):
-        # Gather all items that we need to check
-        itemsToCheck = self.getAllMonitoredItems()
+        while( self.shouldRun ):
+            time.sleep(self.rateToRunInSeconds)
+            # Gather all items that we need to check
+            itemsToCheck = self.getAllMonitoredItems()
 
-        threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = self.maximumWorkers)
-        notificationFutures = []
-        for item in itemsToCheck:
-            notificationFutures.append( threadExecutor.submit(self.doSingleItemNotificationLogic(item)) )
+            threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = self.maximumWorkers)
+            notificationFutures = []
+
+            for item in itemsToCheck:
+                notificationFutures.append( threadExecutor.submit(self.doSingleItemNotificationLogic, item ) )
 
     def doSingleItemNotificationLogic(self, item):
         #Get all items across all sites, A User may not have specified to search ebay but they will take it and be happy if it meets the criteria
@@ -75,18 +82,19 @@ class MainNotificationThread:
 
     def getSubscriptionsInterestedInItem(self, item):
         print("Getting subs that care about "+ item.itemName)
-        subsMonitoringItem = Application.subscriptionManager.getSubscriptions(item.itemName)
+        subsMonitoringItem = Application.subscriptionManager.getSubscriptionsForItem(item.itemName)
         return subsMonitoringItem
 
     def itemInstanceHasBeenNotifiedAbout(self, subscription, itemInstance):
         try:
             exists = Application.notificationsRecsManager.containsRecord(subscription.subscriptionId, itemInstance.itemLink)
-            print(" Turns out that this item instance with "+itemInstance.itemName+" has a value of :")
-            print(exists)
+            if(not exists):
+                print("New record found")
             return exists
         except Exception as e:
             print(e)
-            return False
+            #Something went wrong so we default to saying that the record exists so we dont naively send multiple notifications
+            return True
 
 
     def doNotificationsForSubscription(self, subscription, itemInstances, avgPrice, itemName):
@@ -94,22 +102,28 @@ class MainNotificationThread:
         itemsToNotifyAbout = []
 
         for itemInstance in itemInstances:
-
             if subscription.priceType == "Dollar":
-                if(itemInstance.itemPrice <= subscription.pricePoint):
+                if(itemInstance.itemPrice <= subscription.pricePoint and
+                        not self.itemInstanceHasBeenNotifiedAbout(subscription, itemInstance)):
                     itemsToNotifyAbout.append(itemInstance)
 
 
             elif subscription.priceType == "Percent":
                 itemPriceVsMarket = (itemInstance.itemPrice / avgPrice) * 100
-                if(itemPriceVsMarket <= subscription.pricePoint):
+                if(itemPriceVsMarket <= subscription.pricePoint and
+                        not self.itemInstanceHasBeenNotifiedAbout(subscription, itemInstance)):
                     itemsToNotifyAbout.append(itemInstance)
 
         #If we already notified the user about this item dont repeat it... they would be spammed with emails or texts or w/e
-        filter(self.itemInstanceHasBeenNotifiedAbout, itemsToNotifyAbout)
+        #If there is no new items to report then were done
+        if( len(itemsToNotifyAbout) == 0 ):
+            return
 
         #We tie subs to uuid's not emails cause the user might delete their account and then the email is free again etc.
         user = Application.userManager.getUser(subscription.userId)
+
+        print("Test print")
+        print("Sending "+str(len(itemsToNotifyAbout))+" items in the email")
 
         #Email Notification
         Application.emailBroker.sendEmail(itemsToNotifyAbout, user.email, itemName)
