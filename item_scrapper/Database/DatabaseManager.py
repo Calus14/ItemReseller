@@ -62,18 +62,24 @@ class DatabaseManager:
                     ON UPDATE CASCADE ON DELETE CASCADE
                 )
             """,
+
             """
             CREATE TABLE IF NOT EXISTS items (
                     item_name VARCHAR(255) PRIMARY KEY,
                     average_item_price NUMERIC(20, 10)
             )
             """,
+
             """
             CREATE TABLE IF NOT EXISTS notificationRecords (
                 recordId UUID PRIMARY KEY,
                 subscriptionId UUID,
+                itemName VARCHAR(255),
+                itemPrice DECIMAL(10,2),
                 itemLink VARCHAR(255),
-                CONSTRAINT subItemKey UNIQUE(subscriptionId, itemLink)
+                itemImageLink VARCHAR(255),
+                itemWebsite VARCHAR(255),
+                CONSTRAINT subItemKey UNIQUE(subscriptionId, itemName, itemPrice, itemWebsite)
             )
             """
 

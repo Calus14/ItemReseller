@@ -62,7 +62,8 @@ class AmazonScrapper(WebsiteScrapper):
             return itemList
 
         except Exception as e:
-            print(e)
+            print("AmazonFail")
+            #print(e)
 
 
     def isValidWebElement(self, htmlElement):

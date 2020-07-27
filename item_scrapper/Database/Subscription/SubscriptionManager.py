@@ -94,7 +94,7 @@ class SubscriptionManager:
     def getSubscriptionsForUser(self, userUUID):
         cur = self.databaseManager.databaseConnection.cursor()
 
-        getByUserCommand = "SELECT * FROM subscriptions WHERE user_id='{}".format(str(userUUID))
+        getByUserCommand = "SELECT * FROM subscriptions WHERE user_id='{}'".format(str(userUUID))
         try:
             cur.execute(getByUserCommand)
         except Exception as e:

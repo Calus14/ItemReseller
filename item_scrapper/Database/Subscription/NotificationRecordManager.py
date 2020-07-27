@@ -16,7 +16,7 @@ class NotificationRecordManager:
     def deleteRecordsBySubscription(self, subscriptionId):
         cur = self.databaseManager.databaseConnection.cursor()
         try:
-            cur.execute("DELETE FROM notificationRecords WHERE subscription_id={}".format(subscriptionId))
+            cur.execute("DELETE FROM notificationRecords WHERE subscriptionId={}".format(subscriptionId))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()
@@ -27,9 +27,10 @@ class NotificationRecordManager:
         cur.close()
 
     # Helper function for other managers to call
-    def containsRecord(self, subscriptionId, itemLink):
+    def containsRecord(self, subscriptionId, websiteItem):
         cur = self.databaseManager.databaseConnection.cursor()
-        sqlString = "SELECT notificationRecords, itemLink FROM notificationRecords WHERE subscriptionId = '{}' AND itemLink = '{}'".format(subscriptionId, itemLink)
+        sqlString = "SELECT subscriptionId, itemName, itemPrice, itemWebsite FROM notificationRecords " \
+                    "WHERE subscriptionId = '{}' AND itemName = '{}' AND itemPrice = {} AND itemWebsite='{}'".format(subscriptionId, websiteItem.itemName, str(websiteItem.itemPrice), websiteItem.websiteName)
 
         try:
             cur.execute(sqlString)
@@ -39,7 +40,8 @@ class NotificationRecordManager:
             cur.close()
             return False
 
-        doesExist = cur.fetchone() is not None
+        item = cur.fetchone()
+        doesExist = item is not None
         self.databaseManager.databaseConnection.commit()
         cur.close()
         return doesExist
@@ -47,14 +49,16 @@ class NotificationRecordManager:
     # Called whenever we send out a email with a reference to the item for a given subscription
     def addRecord(self, record):
         cur = self.databaseManager.databaseConnection.cursor()
+
         insertCommand = """
-                            INSERT INTO notificationRecords (recordId, subscriptionId, itemLink)
-                            VALUES (%s, %s, %s)    
+                            INSERT INTO notificationRecords (recordId, subscriptionId, itemName, itemPrice, itemLink, itemImageLink, itemWebsite)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)    
                         """
 
         try:
-            cur.execute(insertCommand, (record.recordId, record.subscriptionId, record.itemLink))
+            cur.execute(insertCommand, (record.recordId, record.subscriptionId, record.websiteItem.itemName, record.websiteItem.itemPrice, record.websiteItem.itemLink, record.websiteItem.itemPictureHtml, record.websiteItem.websiteName))
         except Exception as e:
+            print (e)
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()
             cur.close()
@@ -62,3 +66,28 @@ class NotificationRecordManager:
 
         self.databaseManager.databaseConnection.commit()
         cur.close()
+
+    def getSubscriptionNotificationRecords(self, subscriptionId):
+        cur = self.databaseManager.databaseConnection.cursor()
+        getCommand = "SELECT * FROM notificationRecords WHERE subscriptionId = '{}'".format(subscriptionId)
+
+        try:
+            cur.execute(getCommand)
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
+        recordDbObjects = cur.fetchall()
+        recordedItems = []
+        for dbObject in recordDbObjects:
+            recordedItems.append({'itemImg': dbObject[5],
+                                  'itemLink': dbObject[4],
+                                  'itemPrice': str(dbObject[3])})
+
+        self.databaseManager.databaseConnection.commit()
+        cur.close()
+
+        return recordedItems
+

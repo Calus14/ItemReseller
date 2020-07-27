@@ -27,7 +27,7 @@ class Subscription:
         return {"subscriptionId" : self.subscriptionId,
                 "userId" : self.userId,
                 "itemName" : self.itemName,
-                "pricePoint" : self.pricePoint,
+                "pricePoint" : str(self.pricePoint),
                 "priceType" : self.priceType,
                 "creationTime" : self.creationTime,
                 "expirationTime" : self.expirationTime

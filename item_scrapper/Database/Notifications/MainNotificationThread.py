@@ -23,14 +23,14 @@ class MainNotificationThread:
     #Kill switch for the thread
     shouldRun = True
 
-    def __init__(self, rateToRunInSeconds = 300, maximumWorkers = 5):
+    def __init__(self, rateToRunInSeconds = 180, maximumWorkers = 5):
         self.rateToRunInSeconds = rateToRunInSeconds
         self.maximumWorkers = maximumWorkers
 
     # Call this from the thread you create *start_new_thread*
     def runThread(self):
         while( self.shouldRun ):
-            time.sleep(self.rateToRunInSeconds)
+
             # Gather all items that we need to check
             itemsToCheck = self.getAllMonitoredItems()
 
@@ -39,6 +39,8 @@ class MainNotificationThread:
 
             for item in itemsToCheck:
                 notificationFutures.append( threadExecutor.submit(self.doSingleItemNotificationLogic, item ) )
+
+            time.sleep(self.rateToRunInSeconds)
 
     def doSingleItemNotificationLogic(self, item):
         #Get all items across all sites, A User may not have specified to search ebay but they will take it and be happy if it meets the criteria
@@ -87,9 +89,7 @@ class MainNotificationThread:
 
     def itemInstanceHasBeenNotifiedAbout(self, subscription, itemInstance):
         try:
-            exists = Application.notificationsRecsManager.containsRecord(subscription.subscriptionId, itemInstance.itemLink)
-            if(not exists):
-                print("New record found")
+            exists = Application.notificationsRecsManager.containsRecord(subscription.subscriptionId, itemInstance)
             return exists
         except Exception as e:
             print(e)
@@ -103,14 +103,14 @@ class MainNotificationThread:
 
         for itemInstance in itemInstances:
             if subscription.priceType == "Dollar":
-                if(itemInstance.itemPrice <= subscription.pricePoint and
+                if(itemInstance.itemPrice <= float(subscription.pricePoint) and
                         not self.itemInstanceHasBeenNotifiedAbout(subscription, itemInstance)):
                     itemsToNotifyAbout.append(itemInstance)
 
 
             elif subscription.priceType == "Percent":
-                itemPriceVsMarket = (itemInstance.itemPrice / avgPrice) * 100
-                if(itemPriceVsMarket <= subscription.pricePoint and
+                itemPriceVsMarket = (itemInstance.itemPrice / avgPrice) * 100.0
+                if(itemPriceVsMarket <= float(subscription.pricePoint) and
                         not self.itemInstanceHasBeenNotifiedAbout(subscription, itemInstance)):
                     itemsToNotifyAbout.append(itemInstance)
 
@@ -122,7 +122,6 @@ class MainNotificationThread:
         #We tie subs to uuid's not emails cause the user might delete their account and then the email is free again etc.
         user = Application.userManager.getUser(subscription.userId)
 
-        print("Test print")
         print("Sending "+str(len(itemsToNotifyAbout))+" items in the email")
 
         #Email Notification
@@ -131,6 +130,6 @@ class MainNotificationThread:
         #Future notifications like Text etc.
 
         #Make a record to show that we notified about it already
-        for itemInstance in itemInstances:
-            notificationRecord = NotificationRecord(uuid.uuid4(), subscription.subscriptionId, itemInstance.itemLink)
+        for item in itemsToNotifyAbout:
+            notificationRecord = NotificationRecord(uuid.uuid4(), subscription.subscriptionId, item)
             Application.notificationsRecsManager.addRecord(notificationRecord)

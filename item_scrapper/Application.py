@@ -127,7 +127,7 @@ def addSubscription():
 '''
 Finds all active subscriptions for a given user
 '''
-@app.route("/userSubscription", methods=['GET'])
+@app.route("/userSubscription", methods=['POST'])
 @cross_origin()
 def getUserSubscriptions():
     userId = request.json['userId']
@@ -138,6 +138,22 @@ def getUserSubscriptions():
         for sub in subscriptions:
             answerJsonObjs.append(sub.toJSON())
         return jsonify(answerJsonObjs)
+
+    except Exception as e:
+        print(e)
+        abort( 500, Response(str(e)) )
+
+'''
+Used to tell other services what specific listings have already been found and notified for a given subscription
+'''
+@app.route("/subscriptionItems", methods=['POST'])
+@cross_origin()
+def getNotifiedSubscriptionItems():
+    subscriptionId = request.json['subscriptionId']
+
+    try:
+        notificationRecords = notificationsRecsManager.getSubscriptionNotificationRecords(subscriptionId)
+        return jsonify(notificationRecords)
 
     except Exception as e:
         print(e)
