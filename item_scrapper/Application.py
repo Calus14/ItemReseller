@@ -169,12 +169,12 @@ def deleteNotification():
 
     try:
         subscriptionManager.deleteSubscription(subscriptionId)
-        return
 
     except Exception as e:
         print(e)
         abort( 500, Response(str(e)) )
 
+    return "true"
 
 '''
 Checks to see if a user exists

@@ -17,8 +17,8 @@ class DatabaseManager:
             self.databaseHost = os.getenv("DATABASEHOST")
         if( "DATABASENAME" in os.environ):
             self.databaseName = os.getenv("DATABASENAME")
-        if( "USERNAME" in os.environ):
-            self.username = os.getenv("USERNAME")
+        #if( "USERNAME" in os.environ):
+            #self.username = os.getenv("USERNAME")
         if( "PASSWORD" in os.environ):
             self.password = os.getenv("PASSWORD")
         if( "DATABASEPORT" in os.environ):
