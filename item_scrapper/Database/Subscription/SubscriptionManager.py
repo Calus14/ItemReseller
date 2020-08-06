@@ -19,7 +19,7 @@ class SubscriptionManager:
     def deleteSubscription(self, subscriptionId):
         cur = self.databaseManager.databaseConnection.cursor()
         try:
-            cur.execute("DELETE FROM subscriptions WHERE subscription_id={}".format(subscriptionId))
+            cur.execute("DELETE FROM subscriptions WHERE subscription_id='{}'".format(subscriptionId))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()

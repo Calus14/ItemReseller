@@ -127,7 +127,7 @@ def addSubscription():
 '''
 Finds all active subscriptions for a given user
 '''
-@app.route("/userSubscription", methods=['POST'])
+@app.route("/userSubscriptions", methods=['POST'])
 @cross_origin()
 def getUserSubscriptions():
     userId = request.json['userId']
@@ -160,6 +160,23 @@ def getNotifiedSubscriptionItems():
         abort( 500, Response(str(e)) )
 
 '''
+USED to delete an active subscription from a users database
+'''
+@app.route("/userSubscriptions", methods=['DELETE'])
+@cross_origin()
+def deleteNotification():
+    subscriptionId = request.json['subscriptionId']
+
+    try:
+        subscriptionManager.deleteSubscription(subscriptionId)
+        return
+
+    except Exception as e:
+        print(e)
+        abort( 500, Response(str(e)) )
+
+
+'''
 Checks to see if a user exists
 '''
 @app.route('/userExists', methods=['POST'])
@@ -180,8 +197,6 @@ TODO Fix this to use vue authentication refering to https://blog.sqreen.com/auth
 @app.route('/loginUser', methods=['POST'])
 @cross_origin()
 def loginUser():
-    print ("hit the login user")
-
     try:
         userId = userManager.getUserId(request.json['email'], request.json['password'])
     except Exception as e:

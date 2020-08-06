@@ -82,7 +82,8 @@ class NotificationRecordManager:
         recordDbObjects = cur.fetchall()
         recordedItems = []
         for dbObject in recordDbObjects:
-            recordedItems.append({'itemImg': dbObject[5],
+            recordedItems.append({ 'itemName': dbObject[2],
+                                    'itemImg': dbObject[5],
                                   'itemLink': dbObject[4],
                                   'itemPrice': str(dbObject[3])})
 
