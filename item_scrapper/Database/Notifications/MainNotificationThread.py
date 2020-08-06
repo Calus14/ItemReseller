@@ -2,7 +2,7 @@ import concurrent.futures
 import uuid
 import time
 
-from item_scrapper import Application
+from item_scrapper import FlaskApplication
 from item_scrapper.Database.Subscription.NotificationRecord import NotificationRecord
 
 '''
@@ -49,7 +49,7 @@ class MainNotificationThread:
         #Recalculate the average as items may have been added or subtracted
         item.averageItemPrice = self.calculateAverageOfItem(itemInstances)
         # Lets keep our knowledge of the average so other parts of the app can access it.
-        Application.itemManager.updateItem(item.itemName, item.averageItemPrice)
+        FlaskApplication.itemManager.updateItem(item.itemName, item.averageItemPrice)
 
         #Get all subscriptions that care about this item (at the start will just be one but in the future it could be a lot)
         relevantSubscriptions = self.getSubscriptionsInterestedInItem(item)
@@ -61,14 +61,14 @@ class MainNotificationThread:
     def getAllMonitoredItems(self):
         print("Getting all monitored items")
 
-        itemObjects = Application.itemManager.getAllItems()
+        itemObjects = FlaskApplication.itemManager.getAllItems()
         return itemObjects
 
     def getAllInstancesOfItem(self, item):
         print("Getting all instances of item "+item.itemName)
 
-        allWebsites = list(Application.possibleWebsitesToSearch)
-        allItemInstances = Application.findItemsHelper(allWebsites, item.itemName)
+        allWebsites = list(FlaskApplication.possibleWebsitesToSearch)
+        allItemInstances = FlaskApplication.findItemsHelper(allWebsites, item.itemName)
 
         return allItemInstances
 
@@ -84,12 +84,12 @@ class MainNotificationThread:
 
     def getSubscriptionsInterestedInItem(self, item):
         print("Getting subs that care about "+ item.itemName)
-        subsMonitoringItem = Application.subscriptionManager.getSubscriptionsForItem(item.itemName)
+        subsMonitoringItem = FlaskApplication.subscriptionManager.getSubscriptionsForItem(item.itemName)
         return subsMonitoringItem
 
     def itemInstanceHasBeenNotifiedAbout(self, subscription, itemInstance):
         try:
-            exists = Application.notificationsRecsManager.containsRecord(subscription.subscriptionId, itemInstance)
+            exists = FlaskApplication.notificationsRecsManager.containsRecord(subscription.subscriptionId, itemInstance)
             return exists
         except Exception as e:
             print(e)
@@ -120,16 +120,16 @@ class MainNotificationThread:
             return
 
         #We tie subs to uuid's not emails cause the user might delete their account and then the email is free again etc.
-        user = Application.userManager.getUser(subscription.userId)
+        user = FlaskApplication.userManager.getUser(subscription.userId)
 
         print("Sending "+str(len(itemsToNotifyAbout))+" items in the email")
 
         #Email Notification
-        Application.emailBroker.sendEmail(itemsToNotifyAbout, user.email, itemName)
+        FlaskApplication.emailBroker.sendEmail(itemsToNotifyAbout, user.email, itemName)
 
         #Future notifications like Text etc.
 
         #Make a record to show that we notified about it already
         for item in itemsToNotifyAbout:
             notificationRecord = NotificationRecord(uuid.uuid4(), subscription.subscriptionId, item)
-            Application.notificationsRecsManager.addRecord(notificationRecord)
+            FlaskApplication.notificationsRecsManager.addRecord(notificationRecord)

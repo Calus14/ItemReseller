@@ -1,4 +1,5 @@
-from item_scrapper import Application
+from item_scrapper import FlaskApplication
+from item_scrapper import SocketioServer
 from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 import os
 
@@ -18,4 +19,6 @@ try:
 except KeyError:
     port = 8801
 
-Application.app.run(host='0.0.0.0', port = port, debug = True)
+
+SocketioServer.socketio.run(FlaskApplication.app, host='0.0.0.0', port = port, debug = True)
+print(SocketioServer.socketio.server)

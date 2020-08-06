@@ -1,4 +1,4 @@
-
+import os
 from item_scrapper.Database.Item.ItemManager import ItemManager
 from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 from item_scrapper.Database.Notifications.MainNotificationThread import MainNotificationThread
@@ -20,6 +20,10 @@ from item_scrapper.Database.Subscription.Subscription import Subscription
 
 
 app = Flask(__name__)
+
+if("SECREKEY" in os.environ):
+    app.config['SECRET_KEY'] = os.getENV("SECRETKEY")
+
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
