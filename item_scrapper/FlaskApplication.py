@@ -125,7 +125,8 @@ def addSubscription():
         print(e)
         abort( 500, Response(str(e)) )
 
-    print("Added subscription now with id "+str(newSub.subscriptionId))
+    # not triggering a forced notification cycle on this solo item because as a user i would expeect to wait a bit
+
     return jsonify(newSub.toJSON())
 
 '''
@@ -153,6 +154,8 @@ Used to tell other services what specific listings have already been found and n
 @app.route("/subscriptionItems", methods=['POST'])
 @cross_origin()
 def getNotifiedSubscriptionItems():
+    test = request.json
+    print(test)
     subscriptionId = request.json['subscriptionId']
 
     try:
@@ -168,11 +171,11 @@ USED to delete an active subscription from a users database
 '''
 @app.route("/userSubscriptions", methods=['DELETE'])
 @cross_origin()
-def deleteNotification():
+def delteSubscription():
     subscriptionId = request.json['subscriptionId']
-
+    itemName = request.json['itemName']
     try:
-        subscriptionManager.deleteSubscription(subscriptionId)
+        subscriptionManager.deleteSubscription(subscriptionId, itemName)
 
     except Exception as e:
         print(e)
@@ -186,9 +189,7 @@ Checks to see if a user exists
 @app.route('/userExists', methods=['POST'])
 @cross_origin()
 def checkUserExistance():
-    print("hit the User exsits")
 
-    print(request.json)
     if userManager.containsUser(request.json['email']) :
         print("User Found to be contained")
         return "true"
@@ -216,7 +217,6 @@ Tries to add a new user
 @app.route('/addUser', methods=['POST'])
 @cross_origin()
 def addUser():
-    print("hit the add User")
     newUser = User(
                     uniqueId = uuid.uuid4(),
                     email = request.json['email'],
@@ -228,5 +228,4 @@ def addUser():
         print(e)
         abort( 500, Response(str(e)) )
 
-    print("Added subscription now with id "+newUser.email)
     return jsonify( {"userUniqueId" : newUser.uniqueId} )

@@ -18,7 +18,7 @@ class ItemManager:
     def deleteItem(self, itemName):
         cur = self.databaseManager.databaseConnection.cursor()
         try:
-            cur.execute("DELETE FROM items WHERE item_name={}".format(itemName))
+            cur.execute("DELETE FROM items WHERE item_name='{}'".format(itemName))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()

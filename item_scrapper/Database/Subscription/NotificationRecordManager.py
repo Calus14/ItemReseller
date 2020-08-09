@@ -16,7 +16,7 @@ class NotificationRecordManager:
     def deleteRecordsBySubscription(self, subscriptionId):
         cur = self.databaseManager.databaseConnection.cursor()
         try:
-            cur.execute("DELETE FROM notificationRecords WHERE subscriptionId={}".format(subscriptionId))
+            cur.execute("DELETE FROM notificationRecords WHERE subscriptionId='{}'".format(subscriptionId))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()
@@ -66,6 +66,7 @@ class NotificationRecordManager:
 
         self.databaseManager.databaseConnection.commit()
         cur.close()
+
 
     def getSubscriptionNotificationRecords(self, subscriptionId):
         cur = self.databaseManager.databaseConnection.cursor()

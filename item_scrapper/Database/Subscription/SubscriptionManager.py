@@ -5,6 +5,7 @@ Simple CRUD Wrapper for subscriptions that will be called via api's exposed to t
 by internal logic and not the front end
 '''
 from item_scrapper.Database.Subscription.Subscription import Subscription
+from item_scrapper import FlaskApplication
 
 
 class SubscriptionManager:
@@ -16,7 +17,7 @@ class SubscriptionManager:
         print("Init Subscription Manager")
 
     # Called when expiration or the user asks to delete the subscription
-    def deleteSubscription(self, subscriptionId):
+    def deleteSubscription(self, subscriptionId, itemName):
         cur = self.databaseManager.databaseConnection.cursor()
         try:
             cur.execute("DELETE FROM subscriptions WHERE subscription_id='{}'".format(subscriptionId))
@@ -26,7 +27,33 @@ class SubscriptionManager:
             cur.close()
             raise(e)
 
+        #After deleting any subscription we also need to delete all records that are associated with it.
+        try:
+            FlaskApplication.notificationsRecsManager.deleteRecordsBySubscription(subscriptionId)
+        except Exception as e:
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
+        #Actually delete on the db
         self.databaseManager.databaseConnection.commit()
+
+        #Now if there are 0 more subscriptions associated with the item itself. the item will need to be removed
+        try:
+            cur.execute("SELECT 1 FROM subscriptions WHERE item_name='{}'".format(itemName))
+        except Exception as e:
+            # if we dont close the conneection on a failed execute we wont will lock the process
+            self.databaseManager.databaseConnection.rollback()
+            cur.close()
+            raise(e)
+
+        if cur.fetchone() is None:
+            try:
+                #The item no longer needs to be tracked
+                FlaskApplication.itemManager.deleteItem(itemName)
+            except Exception as e:
+                raise e
+
         cur.close()
 
     # Helper function for other managers to call

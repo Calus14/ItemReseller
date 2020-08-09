@@ -1,7 +1,12 @@
+import _thread
+import time
+
 from item_scrapper import FlaskApplication
 from item_scrapper import SocketioServer
 from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 import os
+
+from item_scrapper.Database.Notifications.MainNotificationThread import MainNotificationThread
 
 ''' TODO REMOVE this and place in a docker file later '''
 try:
@@ -19,6 +24,4 @@ try:
 except KeyError:
     port = 8801
 
-
-SocketioServer.socketio.run(FlaskApplication.app, host='0.0.0.0', port = port, debug = True)
-print(SocketioServer.socketio.server)
+SocketioServer.socketio.run(FlaskApplication.app, host='0.0.0.0', port = port, debug = False)

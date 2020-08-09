@@ -23,7 +23,7 @@ class MainNotificationThread:
     #Kill switch for the thread
     shouldRun = True
 
-    def __init__(self, rateToRunInSeconds = 180, maximumWorkers = 5):
+    def __init__(self, rateToRunInSeconds = 1000, maximumWorkers = 5):
         self.rateToRunInSeconds = rateToRunInSeconds
         self.maximumWorkers = maximumWorkers
 
@@ -35,12 +35,16 @@ class MainNotificationThread:
             itemsToCheck = self.getAllMonitoredItems()
 
             threadExecutor = concurrent.futures.ThreadPoolExecutor(max_workers = self.maximumWorkers)
-            notificationFutures = []
+            testHolder = []
 
             for item in itemsToCheck:
-                notificationFutures.append( threadExecutor.submit(self.doSingleItemNotificationLogic, item ) )
+                testHolder.append(threadExecutor.submit(self.doSingleItemNotificationLogic, item))
 
             time.sleep(self.rateToRunInSeconds)
+
+
+    def doDummyMethod(self, number):
+        print("Doing dummy on number "+str(number))
 
     def doSingleItemNotificationLogic(self, item):
         #Get all items across all sites, A User may not have specified to search ebay but they will take it and be happy if it meets the criteria
