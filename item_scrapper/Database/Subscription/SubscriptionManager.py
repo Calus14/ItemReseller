@@ -6,6 +6,7 @@ by internal logic and not the front end
 '''
 from item_scrapper.Database.Subscription.Subscription import Subscription
 from item_scrapper import FlaskApplication
+from time import strftime
 
 
 class SubscriptionManager:
@@ -85,7 +86,7 @@ class SubscriptionManager:
                         """
 
         try:
-            cur.execute(insertCommand, (subscription.subscriptionId, subscription.userId, subscription.itemName, str(subscription.pricePoint), subscription.priceType, subscription.creationTime, subscription.expirationTime))
+            cur.execute(insertCommand, (subscription.subscriptionId, subscription.userId, subscription.itemName, str(subscription.pricePoint), subscription.priceType, subscription.creationTime.strftime('%Y-%m-%d %H:%M:%S'), subscription.expirationTime.strftime('%Y-%m-%d %H:%M:%S')))
         except Exception as e:
             # if we dont close the conneection on a failed execute we wont will lock the process
             self.databaseManager.databaseConnection.rollback()

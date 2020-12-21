@@ -21,6 +21,7 @@ class Subscription:
         if(priceType is not None):
             self.priceType = priceType
         self.creationTime = datetime.now()
+        #Assuming this is right
         self.expirationTime = self.creationTime + timedelta(hours= hoursToLive)
 
     def toJSON(self):

@@ -4,7 +4,7 @@ from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 from item_scrapper.Database.Notifications.MainNotificationThread import MainNotificationThread
 from item_scrapper.Database.User.User import User
 from item_scrapper.Database.User.UserManager import UserManager
-from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper
+from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper, WalmartScrapper, BestBuyScrapper
 import concurrent.futures
 import _thread
 import copy
@@ -29,7 +29,9 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 possibleWebsitesToSearch = {
     "amazon" : AmazonScrapper.AmazonScrapper(),
-    "ebay" : EbayScrapper.EbayWebScrapper(),
+    "ebay" : EbayScrapper.EbayScrapper(),
+    "walmart" : WalmartScrapper.WalmartScrapper(),
+    "bestbuy" : BestBuyScrapper.BestBuyScrapper(),
 }
 
 '''

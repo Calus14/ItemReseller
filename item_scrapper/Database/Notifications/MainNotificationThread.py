@@ -60,6 +60,7 @@ class MainNotificationThread:
 
         #Iterate over each subscription and do notifications on it based of the given items
         for sub in relevantSubscriptions:
+            self.checkForExpiredSub(sub)
             self.doNotificationsForSubscription(sub, itemInstances, item.averageItemPrice, item.itemName)
 
     def getAllMonitoredItems(self):
@@ -90,6 +91,9 @@ class MainNotificationThread:
         print("Getting subs that care about "+ item.itemName)
         subsMonitoringItem = FlaskApplication.subscriptionManager.getSubscriptionsForItem(item.itemName)
         return subsMonitoringItem
+
+    #def checkForExpiredSub(self, sub):
+     #   if
 
     def itemInstanceHasBeenNotifiedAbout(self, subscription, itemInstance):
         try:

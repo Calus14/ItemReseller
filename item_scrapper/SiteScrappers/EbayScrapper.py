@@ -7,7 +7,7 @@ from item_scrapper.SiteScrappers.WebsiteItem import WebsiteItem
 from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 
 
-class EbayWebScrapper(WebsiteScrapper):
+class EbayScrapper(WebsiteScrapper):
 
     url = "https://www.ebay.com/"
     headers = {

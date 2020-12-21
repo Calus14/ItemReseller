@@ -5,3 +5,5 @@ requests==2.23.0
 Flask==1.1.2
 Flask-Cors==3.0.8
 Flask-Mail==0.9.1
+requests-html==0.10.0
+validators==0.18.2

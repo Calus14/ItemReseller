@@ -54,8 +54,8 @@ class DatabaseManager:
                 item_name VARCHAR(255) NOT NULL,
                 price_point NUMERIC(20, 10) NOT NULL,
                 price_type VARCHAR(255),
-                creation_time TIME  NOT NULL,
-                expiration_time TIME NOT NULL,
+                creation_time VARCHAR(255)  NOT NULL,
+                expiration_time VARCHAR(255) NOT NULL,
                 CONSTRAINT userItemKey UNIQUE(user_id, item_name),
                 FOREIGN KEY (user_id)
                     REFERENCES users (user_id)
