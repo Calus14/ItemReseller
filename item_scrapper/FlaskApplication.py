@@ -4,7 +4,7 @@ from item_scrapper.Database.Notifications.EmailBroker import EmailBroker
 from item_scrapper.Database.Notifications.MainNotificationThread import MainNotificationThread
 from item_scrapper.Database.User.User import User
 from item_scrapper.Database.User.UserManager import UserManager
-from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper, WalmartScrapper, BestBuyScrapper
+from item_scrapper.SiteScrappers import EbayScrapper, AmazonScrapper, WalmartScrapper, BestBuyScrapper, TargetScrapper, NeweggScrapper
 import concurrent.futures
 import _thread
 import copy
@@ -32,6 +32,8 @@ possibleWebsitesToSearch = {
     "ebay" : EbayScrapper.EbayScrapper(),
     "walmart" : WalmartScrapper.WalmartScrapper(),
     "bestbuy" : BestBuyScrapper.BestBuyScrapper(),
+    "target" : TargetScrapper.TargetScrapper(),
+    "newegg" : NeweggScrapper.NeweggScrapper(),
 }
 
 '''

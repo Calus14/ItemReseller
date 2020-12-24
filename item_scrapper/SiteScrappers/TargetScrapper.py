@@ -1,5 +1,5 @@
 import requests
-from requests_html import HTMLSession
+#from requests_html import HTMLSession
 from lxml import etree
 from lxml import html
 import urllib.parse
@@ -13,7 +13,6 @@ class TargetScrapper(WebsiteScrapper):
     url = "https://www.target.com/"
     maximumPagesToGrab = 3
     itemToSearch = ''
-    session = None
 
     searchedItemHtml = None
 
@@ -34,22 +33,22 @@ class TargetScrapper(WebsiteScrapper):
 
     def initializeScrapper(self, itemToSearch):
         self.itemToSearch = itemToSearch
-        self.session = HTMLSession()
 
     def getPossibleItemWebElements(self):
         itemList = []
         itemsCount = 0
         itemPageCount = 1
+        #session = HTMLSession()
         while True:
             itemsUrl = self.url+"s?searchTerm="+urllib.parse.quote(self.itemToSearch)
             try:
-                requestsResult = self.session.get(itemsUrl)
-                requestsResult.html.render(timeout=60)
-            except requests.exceptions.RequestException as requestsException:
+                requestsResult = requests.get(itemsUrl)
+            except Exception as requestsException:
                 print("Stopped trying to get pages for Target at page "+str(itemPageCount))
+                print(requestsException)
                 break
 
-            searchedItemHtml = html.fromstring(requestsResult.html.raw_html)
+            searchedItemHtml = html.fromstring(requestsResult.content)
             htmlset = etree.tostring(searchedItemHtml, pretty_print=True).decode("utf-8")
             print(htmlset)
 

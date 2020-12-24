@@ -8,76 +8,102 @@ from item_scrapper.SiteScrappers.WebsiteScrapper import WebsiteScrapper
 
 class NeweggScrapper(WebsiteScrapper):
 
-    url = "https://www.bestbuy.com/"
+    url = "https://www.newegg.com/"
+    maximumPagesToGrab = 3
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
     }
-    searchedItemHtml = None
+    itemToSearch = ''
 
-    itemPageGridXpath = "//ul[@data-automation-id='search-result-gridview-items']"
+    itemPageXpath = "//div[contains(@class, 'items-grid-view') and not(contains(@class, 'sponsored-brands-items'))]"
+    itemElementXpath = ".//div[@id and @class='item-cell']"
 
-    itemPageListXpath = "//div[@data-automation-id='search-result-listview-items']"
-    itemElementListXpath = "//div[@data-tl-id]"
-
-    itemPriceXpath = ''
-    itemNameXpath = ''
-    itemLinkXpath = ''
-    itemPictureXpath = ''
+    itemPriceXpath = './/li[contains(@class, "price-current")]'
+    itemNameXpath = itemLinkXpath = './/a[@class="item-title"]'
+    itemPictureXpath = './/img'
 
     maxRetries = 3
 
     def initializeScrapper(self, itemToSearch):
-        itemUrl = self.url+"/search/?query="+urllib.parse.quote(itemToSearch)
-        itemsPage = requests.get(itemUrl, headers=self.headers)
-        self.searchedItemHtml = html.fromstring(itemsPage.content)
+        self.itemToSearch = itemToSearch
 
     def getPossibleItemWebElements(self):
-        #Only look at the first page
-        try:
-            # Adding them together because if one fails it just returns an empty list this
-            itemList = self.searchedItemHtml.xpath(self.itemPageGridXpath+self.itemElementGridXpath)
-            return itemList
+        itemList = []
+        itemPageCount = 1
 
-        except Exception as e:
-            print(e)
+        while True:
+            itemsUrl = self.url+"p/pl?d="+urllib.parse.quote(self.itemToSearch)+"&Order=1&page="+str(itemPageCount)
+            try:
+                # Adding them together because if one fails it just returns an empty list this
+                itemsPage = requests.get(itemsUrl, headers=self.headers)
+
+            except Exception as e:
+                print("Failed to grab page number "+ str(itemPageCount)+" for Newegg")
+                print(e)
+                break
+
+            searchItemHtml = html.fromstring(itemsPage.content)
+
+            try:
+                adSeperatedSections = searchItemHtml.xpath(self.itemPageXpath)
+                for itemsSection in adSeperatedSections:
+                    itemList = itemList + itemsSection.xpath(self.itemElementXpath)
+            except Exception as e:
+                print("Failed to grab the items for page number "+ str(itemPageCount)+" for Newegg")
+                print(e)
+                break
+
+            itemPageCount += 1
+            if itemPageCount > self.maximumPagesToGrab:
+                break
+
+        return itemList
 
     def isValidWebElement(self, itemElement):
-        return False
+        if( len(itemElement.xpath(self.itemPriceXpath+"//strong")) == 0 and len(itemElement.xpath(self.itemPriceXpath+"//sup")) == 0  ):
+            return False
+        if( len(itemElement.xpath(self.itemNameXpath)) == 0  ):
+            return False
+        if( len(itemElement.xpath(self.itemPictureXpath)) == 0  ):
+            return False
+        if( len(itemElement.xpath(self.itemLinkXpath)) == 0  ):
+            return False
+        return True
 
     def getItemFromWebElement(self, itemElement):
 
         itemPrice = None
         try:
-            itemPriceText = itemElement.xpath(self.itemPriceXpath)[0].text
-            itemPrice = float( itemPriceText.replace(',', '').replace('$', '') )
+            dollarText = itemElement.xpath(self.itemPriceXpath+"//strong")[0].text
+            centsText = itemElement.xpath(self.itemPriceXpath+"//sup")[0].text
+            itemPrice = float(dollarText+centsText)
         except Exception as e:
-            print("Failure on finding the walmart item PRICE!")
+            print("Failure on finding the newegg item Price!")
             print(e)
-
 
         itemLink = ""
         try:
-            itemLink = "https://walmart.com/"+str(itemElement.xpath(self.itemLinkXpath+"/@href")[0])
+            itemLink = self.url+str(itemElement.xpath(self.itemLinkXpath+"/@href")[0])
         except Exception as e:
-            print("Failure on finding the walmart item LINK!")
+            print("Failure on finding the newegg item LINK!")
             print(e)
 
         pictureHtmlLink = ""
         try:
             pictureHtmlLink = etree.tostring(itemElement.xpath(self.itemPictureXpath)[0], pretty_print=True).decode("utf-8")
         except Exception as e:
-            print("Exception on finding the item Picture Link!")
+            print("Exception on finding the newegg item Picture Link!")
             print(e)
 
         itemName = ""
         try:
             itemName = itemElement.xpath(self.itemNameXpath)[0].text
         except Exception as e:
-            print("Exception on finding the item NAME")
+            print("Exception on finding the newegg item Name")
             print(e)
 
         fullItem = WebsiteItem()
-        fullItem.websiteName = "Walmart"
+        fullItem.websiteName = "Newegg"
         fullItem.itemPrice = itemPrice
         fullItem.itemName = itemName
         fullItem.itemPictureHtml = pictureHtmlLink
