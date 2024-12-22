@@ -5,7 +5,7 @@ services:
     environment:
       - ssl_insecure=1
       - EMAIL_USER=chblaze@gmail.com
-      - EMAIL_PASSWORD=Doubleback2
+      - EMAIL_PASSWORD=ChangeMe
 
     build: .
     ports:
